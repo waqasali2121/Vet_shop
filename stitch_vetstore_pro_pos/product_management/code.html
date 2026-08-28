@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Products &amp; Inventory - Salman Farsy Vet POS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#2b6954",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#586377",
+                        "on-secondary-fixed": "#111c2d",
+                        "primary-fixed": "#b0f0d6",
+                        "surface-container": "#eceef0",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#6b342d",
+                        "surface-variant": "#e0e3e5",
+                        "primary-fixed-dim": "#95d3ba",
+                        "on-error": "#ffffff",
+                        "background": "#f7f9fb",
+                        "on-background": "#191c1e",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed": "#002117",
+                        "secondary-container": "#d5e0f8",
+                        "on-primary-fixed-variant": "#0b513d",
+                        "inverse-primary": "#95d3ba",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-surface-variant": "#404944",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "tertiary-fixed": "#ffdad5",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-dim": "#d8dadc",
+                        "primary": "#003527",
+                        "surface-container-high": "#e6e8ea",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "secondary": "#545f73",
+                        "tertiary": "#4f1f19",
+                        "surface-bright": "#f7f9fb",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "on-tertiary-fixed": "#380d08",
+                        "primary-container": "#064e3b",
+                        "outline": "#707974",
+                        "outline-variant": "#bfc9c3",
+                        "inverse-surface": "#2d3133",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#80bea6",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#ea9e93",
+                        "on-tertiary-fixed-variant": "#6e372f",
+                        "secondary-fixed": "#d8e3fb",
+                        "on-surface": "#191c1e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "pos-panel-padding": "20px",
+                        "unit": "4px",
+                        "sidebar-collapsed": "72px",
+                        "container-gap": "24px",
+                        "grid-gutter": "16px",
+                        "sidebar-width": "260px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "mono-data": ["Geist Mono"],
+                        "body-lg": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "headline-sm": ["Geist"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #f7f9fb; }
+        /* Custom scrollbar for tables */
+        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: transparent; }
+        .table-container::-webkit-scrollbar-thumb { background-color: #bfc9c3; border-radius: 4px; }
+    </style>
+</head>
+<body class="font-body-md text-on-surface bg-background flex h-screen overflow-hidden">
+<!-- SideNavBar (from JSON) -->
+<nav class="fixed left-0 top-0 h-screen w-sidebar-width transition-all duration-300 bg-surface border-r border-outline-variant flex flex-col h-full py-4 z-50">
+<!-- Brand / Header -->
+<div class="px-6 pb-6 border-b border-outline-variant flex items-center gap-3">
+<img alt="Salman Farsy Veterinary Store Logo" class="w-10 h-10 object-contain" data-alt="A minimalist and modern vector logo for a veterinary pharmacy named Salman Farsy. The logo should feature a stylized, clean geometric representation of a medical cross merging with an animal silhouette, using deep emerald green and soft gray colors on a pure white background. The aesthetic must be highly professional and clinical." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEL-5cKMKl__TGo99TxuC-V5sBIdU0ftUmKo1LAl_L0SAbnq6waOXda_M3pOYPTO7TaBsCVvx7oQc4dbZ7UNfHQIaag1E5mW2T0uh5-3WQ6zfhh9brFdKoJaYlS5VS7t27q3c6TFUqAwoixZ-Ccibm-cLffsSOM04NdTRexzyR_6iteSNwalRyerHYwwXFt-jgez9SHt8tte2Z5JP6Xi5dPSxXcGcEjaA5B4Q0KOLVY9ov7p2ctrk"/>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Salman Farsy</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Vet Store POS</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">point_of_sale</span>
+<span>POS</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
+<span>Sales</span>
+</a>
+<!-- Active State -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-secondary-container text-on-secondary-container font-semibold transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span>Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">shopping_cart</span>
+<span>Purchases</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">group</span>
+<span>Customers</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">payments</span>
+<span>Expenses</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_balance_wallet</span>
+<span>Cash Register</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">assessment</span>
+<span>Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">manage_accounts</span>
+<span>Users</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span>Settings</span>
+</a>
+</div>
+<!-- Footer Actions -->
+<div class="px-3 pt-4 border-t border-outline-variant flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+<span>User Profile</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 ml-sidebar-width flex flex-col h-screen">
+<!-- TopNavBar (from JSON) -->
+<header class="sticky top-0 right-0 z-40 w-full bg-surface-container-lowest border-b border-outline-variant shadow-sm flex justify-between items-center px-6 py-2 h-16">
+<!-- Search Bar (on_left) -->
+<div class="flex-1 max-w-md relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-variation-settings: 'FILL' 0;">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Search products, SKUs..." type="text"/>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center text-on-secondary-container hover:bg-surface-container rounded-full active:scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-on-secondary-container hover:bg-surface-container rounded-full active:scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
+</button>
+<button class="px-4 py-2 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container rounded-full active:scale-95 transition-transform border border-outline-variant">Help</button>
+<button class="px-5 py-2 font-label-md text-label-md bg-primary text-on-primary rounded-full active:scale-95 transition-transform shadow-sm hover:bg-primary-container">New Sale</button>
+<img alt="User Avatar" class="w-10 h-10 rounded-full border border-outline-variant object-cover cursor-pointer" data-alt="A simple, professional headshot avatar of a male veterinarian wearing a white lab coat, clean and minimalist on a neutral light gray background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR_NbDf9JABfSxxo4oxzlAlO9cAvooaQABzEpxb3WoMdAsw86H7GcYTC5hHvhvck1XAntAwMSiZouhDHVVRsYaDKUiKSEOE3NCXeP6JFbuq8bMrE6Yk-mGQcyzEahQfzofO05H6vcf74u9LjmLiH3NEfZTEIrEAeaQCAcSQkN-rHE3TiV3MNJB7btleag9qsusdQICWRilVLuFRURm7Heal8WRok-sC72LQAadtLFZVTSK-PPz4zc"/>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 overflow-hidden flex flex-col p-container-gap bg-background">
+<!-- Page Header & Actions -->
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="font-headline-md text-headline-md font-semibold text-on-surface">Products</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage medicines and livestock supplies.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 font-label-md text-label-md bg-surface-container-lowest text-on-surface border border-outline-variant rounded-lg hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">download</span>
+                        Import
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 font-label-md text-label-md bg-surface-container-lowest text-on-surface border border-outline-variant rounded-lg hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">upload</span>
+                        Export
+                    </button>
+<button class="flex items-center gap-2 px-5 py-2 font-label-md text-label-md bg-primary text-on-primary rounded-lg shadow-sm hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">add</span>
+                        Add Product
+                    </button>
+</div>
+</div>
+<!-- Filters Area -->
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant mb-6 flex flex-wrap gap-4 items-center">
+<!-- Category Filter -->
+<div class="flex flex-col gap-1 w-48">
+<label class="font-label-md text-label-md text-on-surface-variant">Category</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary pr-8">
+<option value="">All Categories</option>
+<option value="antibiotics">Antibiotics</option>
+<option value="vaccines">Vaccines</option>
+<option value="supplements">Supplements</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Brand Filter -->
+<div class="flex flex-col gap-1 w-48">
+<label class="font-label-md text-label-md text-on-surface-variant">Brand</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary pr-8">
+<option value="">All Brands</option>
+<option value="bayer">Bayer</option>
+<option value="zoetis">Zoetis</option>
+<option value="merck">Merck</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Stock Status Filter -->
+<div class="flex flex-col gap-1 w-48">
+<label class="font-label-md text-label-md text-on-surface-variant">Stock Status</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary pr-8">
+<option value="">Any Status</option>
+<option value="in_stock">In Stock</option>
+<option value="low_stock">Low Stock</option>
+<option value="out_of_stock">Out of Stock</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Expiry Filter -->
+<div class="flex flex-col gap-1 w-48">
+<label class="font-label-md text-label-md text-on-surface-variant">Expiry Status</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary pr-8">
+<option value="">Any Expiry</option>
+<option value="fresh">Fresh (&gt; 6m)</option>
+<option value="near_expiry">Near Expiry (&lt; 6m)</option>
+<option value="expired">Expired</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex-1 flex justify-end items-end h-full pt-6">
+<button class="font-label-md text-label-md text-primary hover:bg-surface-container px-3 py-1.5 rounded transition-colors">Clear Filters</button>
+</div>
+</div>
+<!-- Data Table Section -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex flex-col flex-1 overflow-hidden relative">
+<div class="table-container overflow-auto flex-1 relative">
+<table class="w-full text-left border-collapse min-w-[1000px]">
+<thead class="sticky top-0 bg-surface-container-low border-b border-outline-variant z-10">
+<tr>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold">Product</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold">SKU</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold">Category</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold text-right">Stock</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold text-right">Purchase Cost</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold text-right">Retail Price</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold">Active Batch</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold">Nearest Expiry</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold">Status</th>
+<th class="px-4 py-3 font-label-md text-label-md text-on-surface-variant font-semibold text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant bg-surface-container-lowest font-body-md text-body-md">
+<!-- Row 1: Healthy -->
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="px-4 py-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">vaccines</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Amoxicillin 500mg</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Bayer</p>
+</div>
+</div>
+</td>
+<td class="px-4 py-2 font-mono-data text-mono-data text-on-surface-variant">AMX-500-BY</td>
+<td class="px-4 py-2 text-on-surface">Antibiotics</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">245</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data text-on-surface-variant">$12.50</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">$18.00</td>
+<td class="px-4 py-2 font-mono-data text-mono-data">B-8472</td>
+<td class="px-4 py-2">
+<div class="flex items-center gap-1.5">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="font-mono-data text-mono-data">Oct 2025</span>
+</div>
+</td>
+<td class="px-4 py-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide bg-[#E6F4EA] text-[#137333] border border-[#CEEAD6]">IN STOCK</span>
+</td>
+<td class="px-4 py-2 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+</td>
+</tr>
+<!-- Row 2: Low Stock -->
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer bg-[#FFF8F0]">
+<td class="px-4 py-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">medication</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Flea &amp; Tick Guard</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Zoetis</p>
+</div>
+</div>
+</td>
+<td class="px-4 py-2 font-mono-data text-mono-data text-on-surface-variant">FLG-100-ZT</td>
+<td class="px-4 py-2 text-on-surface">Supplements</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data font-semibold text-[#E67C73]">12</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data text-on-surface-variant">$25.00</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">$45.00</td>
+<td class="px-4 py-2 font-mono-data text-mono-data">B-1192</td>
+<td class="px-4 py-2">
+<div class="flex items-center gap-1.5">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="font-mono-data text-mono-data">Jan 2026</span>
+</div>
+</td>
+<td class="px-4 py-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide bg-[#FEF7E0] text-[#B06000] border border-[#FEEFC3]">LOW STOCK</span>
+</td>
+<td class="px-4 py-2 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+</td>
+</tr>
+<!-- Row 3: Near Expiry -->
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer bg-[#FFF4F4]">
+<td class="px-4 py-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">science</span>
+</div>
+<div>
+<p class="font-medium text-on-surface">Rabies Vaccine 10ml</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Merck</p>
+</div>
+</div>
+</td>
+<td class="px-4 py-2 font-mono-data text-mono-data text-on-surface-variant">RBV-10M-MK</td>
+<td class="px-4 py-2 text-on-surface">Vaccines</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">85</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data text-on-surface-variant">$40.00</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">$75.00</td>
+<td class="px-4 py-2 font-mono-data text-mono-data">B-9931</td>
+<td class="px-4 py-2">
+<div class="flex items-center gap-1.5">
+<div class="w-2 h-2 rounded-full bg-[#E67C73]"></div>
+<span class="font-mono-data text-mono-data text-[#C5221F] font-semibold">Feb 2024</span>
+</div>
+</td>
+<td class="px-4 py-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide bg-[#FCE8E6] text-[#C5221F] border border-[#FAD2CF]">NEAR EXPIRY</span>
+</td>
+<td class="px-4 py-2 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+</td>
+</tr>
+<!-- Additional Dummy Rows to show density -->
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="px-4 py-2"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">medical_services</span></div><div><p class="font-medium text-on-surface">Ketamine HCl</p><p class="font-label-md text-label-md text-on-surface-variant">Generic</p></div></div></td>
+<td class="px-4 py-2 font-mono-data text-mono-data text-on-surface-variant">KET-500-GN</td>
+<td class="px-4 py-2 text-on-surface">Anesthetics</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">150</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data text-on-surface-variant">$15.00</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">$25.00</td>
+<td class="px-4 py-2 font-mono-data text-mono-data">B-7721</td>
+<td class="px-4 py-2"><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="font-mono-data text-mono-data">Dec 2025</span></div></td>
+<td class="px-4 py-2"><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide bg-[#E6F4EA] text-[#137333] border border-[#CEEAD6]">IN STOCK</span></td>
+<td class="px-4 py-2 text-center opacity-0 group-hover:opacity-100 transition-opacity"><button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-[18px]">edit</span></button></td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group cursor-pointer">
+<td class="px-4 py-2"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined text-[16px]">healing</span></div><div><p class="font-medium text-on-surface">Surgical Gauze Pad</p><p class="font-label-md text-label-md text-on-surface-variant">MedTech</p></div></div></td>
+<td class="px-4 py-2 font-mono-data text-mono-data text-on-surface-variant">SGP-100-MT</td>
+<td class="px-4 py-2 text-on-surface">Consumables</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">500</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data text-on-surface-variant">$2.50</td>
+<td class="px-4 py-2 text-right font-mono-data text-mono-data">$5.00</td>
+<td class="px-4 py-2 font-mono-data text-mono-data">N/A</td>
+<td class="px-4 py-2"><div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="font-mono-data text-mono-data">N/A</span></div></td>
+<td class="px-4 py-2"><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide bg-[#E6F4EA] text-[#137333] border border-[#CEEAD6]">IN STOCK</span></td>
+<td class="px-4 py-2 text-center opacity-0 group-hover:opacity-100 transition-opacity"><button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-[18px]">edit</span></button></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="bg-surface-container-low border-t border-outline-variant px-4 py-3 flex items-center justify-between">
+<p class="font-label-md text-label-md text-on-surface-variant">Showing 1 to 5 of 124 products</p>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary font-label-md text-label-md">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container font-label-md text-label-md">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container font-label-md text-label-md">3</button>
+<span class="text-on-surface-variant px-1">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

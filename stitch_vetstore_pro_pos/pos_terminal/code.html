@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>POS - Salman Farsy Vet POS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f7f9fb",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#2b6954",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#586377",
+                        "on-secondary-fixed": "#111c2d",
+                        "primary-fixed": "#b0f0d6",
+                        "surface-container": "#eceef0",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#6b342d",
+                        "surface-variant": "#e0e3e5",
+                        "primary-fixed-dim": "#95d3ba",
+                        "on-error": "#ffffff",
+                        "background": "#f7f9fb",
+                        "on-background": "#191c1e",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed": "#002117",
+                        "secondary-container": "#d5e0f8",
+                        "on-primary-fixed-variant": "#0b513d",
+                        "inverse-primary": "#95d3ba",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-surface-variant": "#404944",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "tertiary-fixed": "#ffdad5",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-dim": "#d8dadc",
+                        "primary": "#003527",
+                        "surface-container-high": "#e6e8ea",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "secondary": "#545f73",
+                        "tertiary": "#4f1f19",
+                        "surface-bright": "#f7f9fb",
+                        "tertiary-fixed-dim": "#ffb4a9",
+                        "on-tertiary-fixed": "#380d08",
+                        "primary-container": "#064e3b",
+                        "outline": "#707974",
+                        "outline-variant": "#bfc9c3",
+                        "inverse-surface": "#2d3133",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#80bea6",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#ea9e93",
+                        "on-tertiary-fixed-variant": "#6e372f",
+                        "secondary-fixed": "#d8e3fb",
+                        "on-surface": "#191c1e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "pos-panel-padding": "20px",
+                        "unit": "4px",
+                        "sidebar-collapsed": "72px",
+                        "container-gap": "24px",
+                        "grid-gutter": "16px",
+                        "sidebar-width": "260px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "mono-data": ["Geist Mono"],
+                        "body-lg": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "headline-sm": ["Geist"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400&display=swap');
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md h-screen overflow-hidden flex">
+<!-- SideNavBar (Shared Component) -->
+<nav class="fixed left-0 top-0 h-screen w-sidebar-width transition-all duration-300 bg-surface dark:bg-inverse-surface border-r border-outline-variant dark:border-outline z-50 flex flex-col h-full py-4 hidden md:flex">
+<!-- Header -->
+<div class="px-6 mb-8 flex flex-col items-start justify-center">
+<span class="font-headline-sm text-headline-sm font-bold text-primary dark:text-on-primary-container">Salman Farsy</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Vet Store POS</span>
+</div>
+<!-- Navigation Tabs -->
+<ul class="flex-1 overflow-y-auto px-4 space-y-1">
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg bg-secondary-container text-on-secondary-container dark:bg-primary-container dark:text-on-primary-container font-semibold transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 1;">point_of_sale</span>
+<span class="font-label-md text-label-md">POS</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">receipt_long</span>
+<span class="font-label-md text-label-md">Sales</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">inventory_2</span>
+<span class="font-label-md text-label-md">Inventory</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">shopping_cart</span>
+<span class="font-label-md text-label-md">Purchases</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">group</span>
+<span class="font-label-md text-label-md">Customers</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">payments</span>
+<span class="font-label-md text-label-md">Expenses</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Cash Register</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">assessment</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">manage_accounts</span>
+<span class="font-label-md text-label-md">Users</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out mt-auto border-t border-outline-variant pt-4" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</li>
+</ul>
+<!-- Footer -->
+<div class="px-4 mt-auto">
+<a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-variant transition-colors duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-4" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+<span class="font-label-md text-label-md">User Profile</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col ml-0 md:ml-sidebar-width h-screen relative">
+<!-- TopNavBar (Shared Component) -->
+<header class="sticky top-0 right-0 z-40 w-full bg-surface-container-lowest dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none flex justify-between items-center px-6 py-2 h-16 hidden md:flex">
+<!-- Brand / Mobile Menu (Hidden on desktop) -->
+<div class="flex items-center md:hidden">
+<button class="mr-4 p-2 rounded-full hover:bg-surface-container dark:hover:bg-surface-variant active:scale-95 transition-transform text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<span class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">Salman Farsy Vet POS</span>
+</div>
+<div class="flex-1"></div>
+<!-- Actions -->
+<div class="flex items-center space-x-2">
+<button class="p-2 rounded-full hover:bg-surface-container dark:hover:bg-surface-variant active:scale-95 transition-transform text-on-secondary-container dark:text-secondary-fixed-dim">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container dark:hover:bg-surface-variant active:scale-95 transition-transform text-on-secondary-container dark:text-secondary-fixed-dim">
+<span class="material-symbols-outlined">calendar_today</span>
+</button>
+<button class="font-label-md text-label-md px-4 py-2 rounded-lg text-on-secondary-container dark:text-secondary-fixed-dim hover:bg-surface-container dark:hover:bg-surface-variant transition-colors">
+                    Help
+                </button>
+<button class="font-label-md text-label-md px-4 py-2 rounded-lg bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-colors font-medium">
+                    New Sale
+                </button>
+<div class="ml-4 w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A small circular avatar image of a veterinary professional, modern minimalist corporate style, flat lighting, professional demeanor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsFRtZPLg0hz40M667fAeQvYMAZY1TmNOeifTNENMUPKuqNXl4zyZ9cvNVJgrDgDhx8xRmer1hAjslKFYriF9_JuSz3Gca-jQl0ijcpv7mVbhXWkLdr8xi0SOgfBE7SUsztMLjKnEQrQ7DsjITPljMBJjxBYEoIJIPTCgJNqmTqnQomBC72fEIjI2nyDT1PN6k2ZxSby_LB7c7r0QOxUStzmRWCuQPGVHLYPINGUkJfX1gByZCNwY"/>
+</div>
+</div>
+</header>
+<!-- POS Layout Workspace -->
+<main class="flex-1 flex flex-col md:flex-row overflow-hidden bg-background">
+<!-- LEFT PANE: Product Selection (65%) -->
+<section class="w-full md:w-[65%] flex flex-col border-r border-outline-variant bg-surface-bright h-full">
+<!-- Search & Filters Header -->
+<div class="p-container-gap border-b border-outline-variant flex flex-col gap-4 bg-surface-container-lowest">
+<!-- Search Bar -->
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-12 pr-12 py-3 rounded-xl border border-outline-variant bg-surface-container-lowest text-on-surface font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Search by product name, generic name, or scan barcode..." type="text"/>
+<button aria-label="Scan Barcode" class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-surface-container transition-colors text-primary">
+<span class="material-symbols-outlined">barcode_scanner</span>
+</button>
+</div>
+<!-- Category Chips -->
+<div class="flex space-x-2 overflow-x-auto pb-1 scrollbar-hide">
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md border border-transparent">All</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface text-on-surface-variant border border-outline-variant hover:bg-surface-container transition-colors font-label-md text-label-md">Injections</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface text-on-surface-variant border border-outline-variant hover:bg-surface-container transition-colors font-label-md text-label-md">Antibiotics</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface text-on-surface-variant border border-outline-variant hover:bg-surface-container transition-colors font-label-md text-label-md">Vaccines</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface text-on-surface-variant border border-outline-variant hover:bg-surface-container transition-colors font-label-md text-label-md">Supplements</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-surface text-on-surface-variant border border-outline-variant hover:bg-surface-container transition-colors font-label-md text-label-md">Surgical</button>
+</div>
+</div>
+<!-- Product Grid/Table -->
+<div class="flex-1 overflow-y-auto p-4">
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+<!-- Product Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 hover:border-primary cursor-pointer transition-colors shadow-sm flex flex-col gap-2 relative">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-sm text-[16px] font-semibold text-on-surface">Amoxicillin 250mg</h3>
+<span class="font-mono-data text-mono-data text-on-surface-variant">Rs. 450</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant line-clamp-1">Broad-spectrum antibiotic</p>
+<div class="mt-auto pt-2 flex items-center justify-between border-t border-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-label-md text-label-md text-on-surface">Stock: 45</span>
+</div>
+<div class="font-mono-data text-[11px] text-outline">Exp: 12/2025</div>
+</div>
+</div>
+<!-- Product Card 2 (Near Expiry) -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 hover:border-primary cursor-pointer transition-colors shadow-sm flex flex-col gap-2 relative">
+<div class="absolute -top-2 -right-2 bg-tertiary-container text-on-tertiary px-2 py-0.5 rounded-full font-label-md text-[10px] flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px]">warning</span> Near Exp
+                            </div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-sm text-[16px] font-semibold text-on-surface">Oxytetracycline 20%</h3>
+<span class="font-mono-data text-mono-data text-on-surface-variant">Rs. 1200</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant line-clamp-1">Injectable solution</p>
+<div class="mt-auto pt-2 flex items-center justify-between border-t border-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-label-md text-label-md text-on-surface">Stock: 12</span>
+</div>
+<div class="font-mono-data text-[11px] text-tertiary font-semibold">Exp: 08/2024</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 hover:border-primary cursor-pointer transition-colors shadow-sm flex flex-col gap-2 relative">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-sm text-[16px] font-semibold text-on-surface">Ivermectin 1%</h3>
+<span class="font-mono-data text-mono-data text-on-surface-variant">Rs. 850</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant line-clamp-1">Anti-parasitic injection</p>
+<div class="mt-auto pt-2 flex items-center justify-between border-t border-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-label-md text-label-md text-on-surface">Stock: 104</span>
+</div>
+<div class="font-mono-data text-[11px] text-outline">Exp: 05/2026</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- RIGHT PANE: Cart & Checkout (35%) -->
+<section class="w-full md:w-[35%] flex flex-col bg-surface-container-lowest h-full relative z-10 shadow-[-4px_0_12px_rgba(0,0,0,0.02)]">
+<!-- Customer Selection -->
+<div class="p-pos-panel-padding border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant border border-outline-variant">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-[11px] text-outline uppercase tracking-wider">Customer</span>
+<span class="font-body-md text-on-surface font-medium">Walk-in Customer</span>
+</div>
+</div>
+<button class="p-2 rounded-lg bg-surface text-primary border border-outline-variant hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+</button>
+</div>
+<!-- Cart Items (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-2">
+<table class="w-full text-left border-collapse">
+<tbody>
+<!-- Cart Row 1 -->
+<tr class="border-b border-surface-variant last:border-0 hover:bg-surface-container-low transition-colors group">
+<td class="py-3 px-2">
+<div class="font-body-md font-medium text-on-surface">Amoxicillin 250mg</div>
+<div class="font-mono-data text-[11px] text-outline">Batch: B-772 • Exp: 12/25</div>
+</td>
+<td class="py-3 px-2 text-center w-24">
+<div class="flex items-center justify-between border border-outline-variant rounded-md bg-surface-container-lowest">
+<button class="px-2 py-1 text-outline hover:text-on-surface active:bg-surface-variant transition-colors">-</button>
+<span class="font-mono-data text-[13px] font-medium w-6 text-center">4</span>
+<button class="px-2 py-1 text-outline hover:text-on-surface active:bg-surface-variant transition-colors">+</button>
+</div>
+</td>
+<td class="py-3 px-2 text-right font-mono-data text-mono-data text-on-surface w-24">
+                                    1,800
+                                </td>
+<td class="py-3 pr-2 w-8 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-error hover:bg-error-container p-1 rounded transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<!-- Cart Row 2 -->
+<tr class="border-b border-surface-variant last:border-0 hover:bg-surface-container-low transition-colors group">
+<td class="py-3 px-2">
+<div class="font-body-md font-medium text-on-surface">Ivermectin 1%</div>
+<div class="font-mono-data text-[11px] text-outline">Batch: IV-99 • Exp: 05/26</div>
+</td>
+<td class="py-3 px-2 text-center w-24">
+<div class="flex items-center justify-between border border-outline-variant rounded-md bg-surface-container-lowest">
+<button class="px-2 py-1 text-outline hover:text-on-surface active:bg-surface-variant transition-colors">-</button>
+<span class="font-mono-data text-[13px] font-medium w-6 text-center">2</span>
+<button class="px-2 py-1 text-outline hover:text-on-surface active:bg-surface-variant transition-colors">+</button>
+</div>
+</td>
+<td class="py-3 px-2 text-right font-mono-data text-mono-data text-on-surface w-24">
+                                    1,700
+                                </td>
+<td class="py-3 pr-2 w-8 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-error hover:bg-error-container p-1 rounded transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<!-- Cart Row 3 -->
+<tr class="border-b border-surface-variant last:border-0 hover:bg-surface-container-low transition-colors group bg-tertiary-fixed-dim/10">
+<td class="py-3 px-2 relative">
+<span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-3/4 bg-tertiary rounded-r-md"></span>
+<div class="font-body-md font-medium text-on-surface pl-2">Oxytetracycline 20%</div>
+<div class="font-mono-data text-[11px] text-tertiary pl-2 flex items-center gap-1"><span class="material-symbols-outlined text-[10px]">warning</span> Near Exp: 08/24</div>
+</td>
+<td class="py-3 px-2 text-center w-24">
+<div class="flex items-center justify-between border border-outline-variant rounded-md bg-surface-container-lowest">
+<button class="px-2 py-1 text-outline hover:text-on-surface active:bg-surface-variant transition-colors">-</button>
+<span class="font-mono-data text-[13px] font-medium w-6 text-center">1</span>
+<button class="px-2 py-1 text-outline hover:text-on-surface active:bg-surface-variant transition-colors">+</button>
+</div>
+</td>
+<td class="py-3 px-2 text-right font-mono-data text-mono-data text-on-surface w-24">
+                                    1,200
+                                </td>
+<td class="py-3 pr-2 w-8 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="text-error hover:bg-error-container p-1 rounded transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Totals & Payment Section -->
+<div class="bg-surface-container-low border-t border-outline-variant flex flex-col p-pos-panel-padding gap-4">
+<!-- Breakdown -->
+<div class="space-y-2 font-mono-data text-mono-data text-on-surface-variant">
+<div class="flex justify-between">
+<span>Subtotal</span>
+<span>Rs. 4,700</span>
+</div>
+<div class="flex justify-between items-center text-primary">
+<span class="flex items-center gap-1 border-b border-dashed border-primary cursor-pointer hover:bg-primary-container/20 transition-colors">Discount <span class="material-symbols-outlined text-[14px]">edit</span></span>
+<span>- Rs. 0</span>
+</div>
+<div class="flex justify-between">
+<span>Tax (0%)</span>
+<span>Rs. 0</span>
+</div>
+</div>
+<!-- Grand Total -->
+<div class="flex justify-between items-end border-t border-outline-variant pt-4 pb-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Total</span>
+<span class="font-display-lg text-display-lg text-primary tracking-tight">Rs. 4,700</span>
+</div>
+<!-- Payment Toggles -->
+<div class="grid grid-cols-4 gap-2 mb-2">
+<button class="py-2 rounded-lg border border-primary bg-primary-container text-on-primary-container font-label-md text-label-md flex flex-col items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+                            Cash
+                        </button>
+<button class="py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex flex-col items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[20px]">credit_card</span>
+                            Card
+                        </button>
+<button class="py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex flex-col items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[20px]">account_balance</span>
+                            Bank
+                        </button>
+<button class="py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex flex-col items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+                            Easypaisa
+                        </button>
+</div>
+<!-- Cash Input State (Contextual) -->
+<div class="bg-surface-container rounded-lg p-3 grid grid-cols-2 gap-4 border border-outline-variant/50">
+<div>
+<label class="block font-label-md text-[11px] text-outline mb-1 uppercase tracking-wider">Received</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-2 py-1.5 font-mono-data text-mono-data focus:border-primary focus:ring-1 focus:ring-primary text-right" type="text" value="5,000"/>
+</div>
+<div>
+<label class="block font-label-md text-[11px] text-outline mb-1 uppercase tracking-wider">Change</label>
+<div class="w-full bg-secondary-container text-on-secondary-container border border-transparent rounded-md px-2 py-1.5 font-mono-data text-mono-data text-right font-medium">
+                                Rs. 300
+                            </div>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full py-4 rounded-xl bg-surface-tint text-on-primary font-headline-md text-[18px] font-semibold hover:bg-primary transition-colors active:scale-[0.98] flex items-center justify-center gap-2 mt-2 shadow-sm">
+<span class="material-symbols-outlined">check_circle</span>
+                        Complete Sale
+                    </button>
+</div>
+</section>
+</main>
+</div>
+</body></html>
