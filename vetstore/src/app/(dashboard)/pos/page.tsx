@@ -1,10 +1,19 @@
-import * as React from "react"
 import { checkActiveRegisterSession } from "@/lib/actions/sales"
 import { getCustomers } from "@/lib/actions/customers"
 import { createClient } from "@/lib/supabase/server"
 import { POSTerminal } from "@/components/pos/pos-terminal"
 
-export default async function POSPage() {
+interface SearchParams {
+  customerId?: string
+}
+
+interface PageProps {
+  searchParams: Promise<SearchParams>
+}
+
+export default async function POSPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const defaultCustomerId = params.customerId || ""
   const supabase = await createClient()
 
   // 1. Check Cashier Session
@@ -82,6 +91,7 @@ export default async function POSPage() {
         initialProducts={posProducts}
         customers={mappedCustomers}
         activeSession={activeSession as any}
+        defaultCustomerId={defaultCustomerId}
       />
     </div>
   )

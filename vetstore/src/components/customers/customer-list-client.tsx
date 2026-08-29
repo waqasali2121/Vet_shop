@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus, Edit, Eye, User, Loader2 } from "lucide-react"
+import { Plus, Edit, Eye, User, Loader2, Search, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 
 type Customer = {
@@ -37,6 +37,13 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const filteredCustomers = customers.filter(c =>
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.phone.includes(searchTerm) ||
+    (c.address && c.address.toLowerCase().includes(searchTerm.toLowerCase()))
+  )
 
   const defaultValues: CustomerFormValues = {
     name: "",
@@ -114,27 +121,50 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
             Manage customer accounts, track credit limits, and record payments.
           </p>
         </div>
-        <Button onClick={handleOpenAdd} className="font-semibold gap-2 shadow-sm cursor-pointer">
-          <Plus className="h-4 w-4" />
-          Add Customer
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/pos">
+            <Button className="font-bold gap-2 shadow-sm cursor-pointer bg-primary hover:bg-primary-hover text-white">
+              <ShoppingCart className="h-4 w-4" />
+              + GENERATE BILL
+            </Button>
+          </Link>
+          <Button onClick={handleOpenAdd} variant="outline" className="font-semibold gap-2 shadow-sm cursor-pointer border-slate-200">
+            <Plus className="h-4 w-4" />
+            Add Customer
+          </Button>
+        </div>
       </div>
+
+      {/* Search Filter Bar */}
+      <Card className="border-slate-200/80 shadow-sm shrink-0">
+        <CardContent className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search customers by name, type, or mobile number..."
+              className="pl-9 border-slate-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Table */}
       <Card className="border-slate-200/80 shadow-sm">
         <CardHeader className="pb-2 border-b border-slate-100">
           <CardTitle className="font-bold text-slate-900">Customer Directory</CardTitle>
-          <CardDescription className="text-slate-500">
+          <CardDescription className="text-slate-550">
             A list of registered accounts showing credit limits and outstanding balances.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
-          {customers.length === 0 ? (
+          {filteredCustomers.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-slate-400 gap-2 p-6">
               <User className="h-10 w-10 text-slate-300" />
-              <p className="text-sm font-semibold">No customers registered</p>
+              <p className="text-sm font-semibold">No customers found</p>
               <Button variant="outline" size="sm" onClick={handleOpenAdd} className="mt-2 font-semibold">
-                Register First Customer
+                Register New Customer
               </Button>
             </div>
           ) : (
@@ -152,7 +182,7 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm">
-                  {customers.map((customer) => {
+                  {filteredCustomers.map((customer) => {
                     const balance = Number(customer.current_balance)
                     const limit = Number(customer.credit_limit)
                     const isWalkIn = customer.id === "00000000-0000-0000-0000-000000000000"
@@ -195,8 +225,14 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
                         </td>
 
                         <td className="px-6 py-4 text-right space-x-1 whitespace-nowrap">
+                          <Link href={`/pos?customerId=${customer.id}`}>
+                            <Button variant="ghost" size="sm" className="font-bold text-xs text-primary hover:text-primary-hover hover:bg-slate-100 gap-1 cursor-pointer">
+                              <ShoppingCart className="h-3.5 w-3.5" />
+                              + Bill
+                            </Button>
+                          </Link>
                           <Link href={`/customers/${customer.id}`}>
-                            <Button variant="ghost" size="sm" className="font-semibold text-primary hover:text-primary/80 gap-1.5 cursor-pointer">
+                            <Button variant="ghost" size="sm" className="font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 gap-1.5 cursor-pointer">
                               <Eye className="h-3.5 w-3.5" />
                               Ledger Statement
                             </Button>
@@ -206,7 +242,7 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleOpenEdit(customer)}
-                              className="h-8 w-8 text-slate-500 cursor-pointer"
+                              className="h-8 w-8 text-slate-500 hover:text-slate-750 hover:bg-slate-100 cursor-pointer"
                               title="Edit"
                             >
                               <Edit className="h-4 w-4" />

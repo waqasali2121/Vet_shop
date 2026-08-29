@@ -82,6 +82,11 @@ export async function getDashboardData() {
     const todayStr = new Date().toISOString().split("T")[0]
     let lowStockCount = 0
     let expiredCount = 0
+    let expiringSoonCount = 0
+
+    const ninetyDaysLater = new Date()
+    ninetyDaysLater.setDate(ninetyDaysLater.getDate() + 90)
+    const ninetyDaysLaterStr = ninetyDaysLater.toISOString().split("T")[0]
 
     products?.forEach(p => {
       const pBatches = (batches || []).filter(b => b.product_id === p.id)
@@ -92,16 +97,16 @@ export async function getDashboardData() {
     })
 
     batches?.forEach(b => {
-      if (b.expiry_date && b.expiry_date < todayStr) {
-        expiredCount++
+      if (b.expiry_date) {
+        if (b.expiry_date < todayStr) {
+          expiredCount++
+        } else if (b.expiry_date >= todayStr && b.expiry_date <= ninetyDaysLaterStr) {
+          expiringSoonCount++
+        }
       }
     })
 
     // 6. Fetch Expiry Alerts (Expiring in the next 90 days)
-    const ninetyDaysLater = new Date()
-    ninetyDaysLater.setDate(ninetyDaysLater.getDate() + 90)
-    const ninetyDaysLaterStr = ninetyDaysLater.toISOString().split("T")[0]
-
     const { data: expiryAlerts, error: expAlertErr } = await supabase
       .from("product_batches")
       .select(`
@@ -130,20 +135,77 @@ export async function getDashboardData() {
 
     if (recErr) throw recErr
 
+    // 8. Fetch total products, customers, suppliers count
+    const { count: totalProductsCount } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true)
+
+    const { count: totalCustomersCount } = await supabase
+      .from("customers")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true)
+
+    const { count: totalSuppliersCount } = await supabase
+      .from("suppliers")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true)
+
+    // 9. Fetch monthly revenue (current calendar month)
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
+    const startOfMonthISO = startOfMonth.toISOString()
+
+    const { data: monthSales } = await supabase
+      .from("sales")
+      .select("grand_total")
+      .gte("created_at", startOfMonthISO)
+      .neq("sale_status", "VOIDED")
+
+    const monthlyRevenue = (monthSales || []).reduce((sum, s) => sum + Number(s.grand_total), 0)
+
+    // 10. Fetch Most Bought Medicines (top 5 by quantity)
+    const { data: allSaleItems } = await supabase
+      .from("sale_items")
+      .select("product_id, quantity, product:products(name)")
+
+    const itemSalesMap: Record<string, { name: string; quantity: number }> = {}
+    allSaleItems?.forEach(item => {
+      const prodId = item.product_id
+      const prodName = (item.product as any)?.name || "Unknown Product"
+      if (!itemSalesMap[prodId]) {
+        itemSalesMap[prodId] = { name: prodName, quantity: 0 }
+      }
+      itemSalesMap[prodId].quantity += item.quantity
+    })
+
+    const mostBought = Object.values(itemSalesMap)
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5)
+
     return {
       success: true,
       data: {
         kpis: {
           todaySales: salesTotal,
-          todayGrossProfit,
-          activeCashSession: activeCash,
+          todayBillsCount: todaySales?.length || 0,
+          todayRevenue: paidTotal,
+          monthlyRevenue,
+          totalProducts: totalProductsCount || 0,
+          totalCustomers: totalCustomersCount || 0,
+          totalSuppliers: totalSuppliersCount || 0,
           lowStockCount,
           expiredCount,
+          expiringSoonCount,
+          todayGrossProfit,
+          activeCashSession: activeCash,
           creditSales: creditTotal,
           cashSales: paidTotal,
         },
         expiryAlerts: expiryAlerts || [],
-        recentSales: recentSales || []
+        recentSales: recentSales || [],
+        mostBought: mostBought || []
       }
     }
   } catch (err: any) {

@@ -38,9 +38,10 @@ type LedgerItem = {
 interface CustomerDetailClientProps {
   customer: Customer
   ledger: LedgerItem[]
+  purchaseHistory: any[]
 }
 
-export function CustomerDetailClient({ customer, ledger }: CustomerDetailClientProps) {
+export function CustomerDetailClient({ customer, ledger, purchaseHistory }: CustomerDetailClientProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -253,6 +254,67 @@ export function CustomerDetailClient({ customer, ledger }: CustomerDetailClientP
           </CardContent>
         </Card>
       </div>
+
+      {/* Customer Purchase History Log */}
+      <Card className="border-slate-200/80 shadow-sm">
+        <CardHeader className="pb-2 border-b border-slate-100 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="font-bold text-slate-900 text-base">Purchase History</CardTitle>
+            <CardDescription className="text-slate-500 text-xs">
+              A list of medicines purchased by this customer.
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {purchaseHistory.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-48 text-slate-400 gap-1.5 p-6">
+              <span className="text-xs font-semibold">No purchases recorded</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/75 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3">Date</th>
+                    <th className="px-6 py-3">Invoice #</th>
+                    <th className="px-6 py-3">Item Name</th>
+                    <th className="px-6 py-3 text-right">Quantity</th>
+                    <th className="px-6 py-3 text-right">Unit Price</th>
+                    <th className="px-6 py-3 text-right">Invoice Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs">
+                  {purchaseHistory.map((sale: any) => {
+                    return (
+                      <React.Fragment key={sale.id}>
+                        {sale.items?.map((item: any, itemIdx: number) => {
+                          const dateStr = new Date(sale.created_at).toLocaleDateString()
+                          return (
+                            <tr key={item.id} className="hover:bg-slate-50/50 transition-colors font-semibold">
+                              <td className="px-6 py-3.5 text-slate-500">
+                                {itemIdx === 0 ? dateStr : ""}
+                              </td>
+                              <td className="px-6 py-3.5 font-mono text-slate-700">
+                                {itemIdx === 0 ? sale.invoice_number : ""}
+                              </td>
+                              <td className="px-6 py-3.5 text-slate-900">{item.product?.name || "—"}</td>
+                              <td className="px-6 py-3.5 text-right">{item.quantity}</td>
+                              <td className="px-6 py-3.5 text-right">Rs. {Number(item.unit_price).toLocaleString()}</td>
+                              <td className="px-6 py-3.5 text-right font-bold text-slate-800">
+                                {itemIdx === 0 ? `Rs. ${Number(sale.grand_total).toLocaleString()}` : ""}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </React.Fragment>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Record Payment Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

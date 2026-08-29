@@ -51,6 +51,7 @@ interface POSTerminalProps {
   initialProducts: POSProduct[]
   customers: POSCustomer[]
   activeSession: { id: string } | null
+  defaultCustomerId?: string
 }
 
 type CartItem = {
@@ -60,14 +61,14 @@ type CartItem = {
   discount_amount: number
 }
 
-export function POSTerminal({ initialProducts, customers, activeSession }: POSTerminalProps) {
+export function POSTerminal({ initialProducts, customers, activeSession, defaultCustomerId = "" }: POSTerminalProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
   // State Management
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCustomerId, setSelectedCustomerId] = useState("00000000-0000-0000-0000-000000000000") // Walk-in
+  const [selectedCustomerId, setSelectedCustomerId] = useState(defaultCustomerId || "00000000-0000-0000-0000-000000000000") // Walk-in or default
 
   // Discount & History Management
   const [discountPercent, setDiscountPercent] = useState("")

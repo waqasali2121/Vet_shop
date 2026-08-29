@@ -7,19 +7,15 @@ import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
   ShoppingCart,
-  TrendingUp,
   Package,
   Import,
   Users,
-  Receipt,
-  Coins,
   BarChart3,
-  UserCog,
-  Settings,
   ChevronDown,
   ChevronRight,
   ShieldCheck,
-  Menu,
+  Plus,
+  AlertOctagon
 } from "lucide-react"
 
 type SidebarItem = {
@@ -31,20 +27,42 @@ type SidebarItem = {
 
 const sidebarItems: SidebarItem[] = [
   {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "POS Terminal",
+    href: "/pos",
+    icon: ShoppingCart,
+  },
+  {
     title: "Products",
     href: "/products",
     icon: Package,
   },
   {
-    title: "Sales",
-    icon: ShoppingCart,
-    items: [
-      { title: "New Sale (POS)", href: "/pos" },
-      { title: "Sales History", href: "/sales" },
-    ],
+    title: "Add Medicine",
+    href: "/products/new",
+    icon: Plus,
   },
   {
-    title: "Daily Backup",
+    title: "Customers",
+    href: "/customers",
+    icon: Users,
+  },
+  {
+    title: "Suppliers",
+    href: "/suppliers",
+    icon: Import,
+  },
+  {
+    title: "Expired Medicines",
+    href: "/inventory/expiry",
+    icon: AlertOctagon,
+  },
+  {
+    title: "Backup & Reports",
     href: "/reports",
     icon: BarChart3,
   },
