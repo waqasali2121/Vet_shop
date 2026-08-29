@@ -298,6 +298,9 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
       }
     }
 
+    // Bypass browser pop-up blocker by opening the window synchronously first
+    const printWindow = typeof window !== "undefined" ? window.open("about:blank", "_blank", "width=400,height=600") : null
+
     startTransition(async () => {
       // Build payments array
       const payments = []
@@ -332,9 +335,14 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
       const res = await createSale(payload)
       if (res.error) {
         setError(res.error)
+        printWindow?.close() // Close the blank window on error
       } else if (res.data) {
         setCompletedSaleId(res.data.id)
         setReceiptModalOpen(true)
+        // Redirect the blank window to the real print receipt URL
+        if (printWindow) {
+          printWindow.location.href = `/api/receipt?id=${res.data.id}`
+        }
         // Clear terminal cart
         setCart([])
         setPaidCash("")
@@ -525,8 +533,8 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
         </Card>
 
         {/* Customer & Checkout Card */}
-        <Card className="border-slate-200/80 shadow-sm shrink-0">
-          <CardContent className="p-4 space-y-4">
+        <Card className="border-slate-200/80 shadow-sm shrink-0 flex flex-col max-h-[62%] overflow-hidden">
+          <CardContent className="p-4 space-y-4 flex-1 overflow-y-auto scrollbar-thin">
             {/* Customer Selector */}
             <div className="flex items-end gap-2">
               <div className="grid gap-1.5 flex-1">
@@ -671,9 +679,11 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
               </div>
             </div>
 
-            {/* Calculations Breakdown */}
-            <div className="border-t border-slate-100 pt-3 space-y-2 text-xs font-semibold">
-              <div className="flex justify-between text-slate-500">
+          </CardContent>
+
+          {/* Calculations Breakdown outside of scrollable CardContent */}
+          <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-2 text-xs font-semibold shrink-0">
+            <div className="flex justify-between text-slate-500">
                 <span>Subtotal</span>
                 <span>Rs. {subtotal.toLocaleString()}</span>
               </div>
@@ -706,7 +716,6 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                 </div>
               )}
             </div>
-          </CardContent>
 
           <CardFooter className="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-xl flex flex-col gap-2">
             <div className="flex gap-2 w-full">
