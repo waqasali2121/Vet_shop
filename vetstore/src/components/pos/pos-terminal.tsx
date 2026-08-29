@@ -18,12 +18,8 @@ import {
   Minus,
   Trash2,
   UserPlus,
-  Calculator,
   Loader2,
   Printer,
-  Coins,
-  CreditCard,
-  Phone,
   Barcode
 } from "lucide-react"
 
@@ -360,9 +356,9 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-5 h-[calc(100vh-8.5rem)] overflow-hidden">
+    <div className="grid gap-6 grid-cols-1 md:grid-cols-5 h-auto md:h-[calc(100vh-8.5rem)] overflow-y-auto md:overflow-hidden pr-1">
       {/* LEFT COLUMN: Product Catalog & Search (3/5 width) */}
-      <div className="md:col-span-3 flex flex-col h-full space-y-4">
+      <div className="col-span-1 md:col-span-3 flex flex-col h-auto md:h-full space-y-4">
         {/* Search Header */}
         <Card className="border-slate-200/80 shadow-sm shrink-0">
           <CardContent className="p-4">
@@ -384,7 +380,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
         </Card>
 
         {/* Search Results / Catalog */}
-        <Card className="border-slate-200/80 shadow-sm flex-1 overflow-hidden flex flex-col">
+        <Card className="border-slate-200/80 shadow-sm flex-1 min-h-[350px] md:min-h-0 overflow-hidden flex flex-col">
           <CardHeader className="pb-2 border-b border-slate-100 shrink-0">
             <CardTitle className="text-sm font-bold text-slate-900">Product List</CardTitle>
             <CardDescription className="text-xs">
@@ -413,7 +409,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                       onClick={() => handleAddToCart(product)}
                       disabled={outOfStock}
                       className={`flex flex-col text-left p-3 border rounded-lg hover:border-primary hover:bg-slate-50/50 transition-all cursor-pointer relative w-full ${
-                        outOfStock ? "opacity-60 bg-slate-50 border-slate-200" : "border-slate-200"
+                        outOfStock ? "opacity-60 bg-slate-55 border-slate-200" : "border-slate-200"
                       }`}
                     >
                       <div className="font-bold text-slate-800 text-xs line-clamp-2 min-h-[2rem]">
@@ -440,183 +436,188 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
       </div>
 
       {/* RIGHT COLUMN: POS Cart & Checkout Panel (2/5 width) */}
-      <div className="md:col-span-2 flex flex-col h-full space-y-4">
-        {/* Cart Card */}
-        <Card className="border-slate-200/80 shadow-sm flex-1 overflow-hidden flex flex-col">
-          <CardHeader className="pb-2 border-b border-slate-100 shrink-0 flex flex-row items-center justify-between">
+      <div className="col-span-1 md:col-span-2 flex flex-col h-auto md:h-full">
+        {/* Unified Cart & Checkout Card */}
+        <Card className="border-slate-200/80 shadow-sm h-full flex flex-col overflow-hidden">
+          {/* Card Header (Sticky) */}
+          <CardHeader className="pb-2.5 border-b border-slate-100 shrink-0 flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5 text-primary" />
-              <CardTitle className="font-bold text-slate-900">POS Cart</CardTitle>
+              <CardTitle className="font-bold text-slate-900 text-sm">POS Cart & Checkout</CardTitle>
             </div>
             <Badge variant="outline" className="font-bold text-xs bg-slate-100">
               {cart.reduce((sum, item) => sum + item.quantity, 0)} Items
             </Badge>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-0 scrollbar-thin divide-y divide-slate-100">
-            {cart.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-1.5 p-6">
-                <p className="text-xs font-semibold">Your cart is empty</p>
-                <p className="text-[10px]">Add products to proceed to checkout.</p>
-              </div>
-            ) : (
-              cart.map((item, idx) => (
-                <div key={item.product.id} className="p-3.5 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col max-w-[200px]">
-                      <span className="font-bold text-xs text-slate-800 line-clamp-1">{item.product.name}</span>
-                      <span className="text-[9px] text-slate-400 font-semibold font-mono">SKU: {item.product.sku}</span>
-                    </div>
-                    <span className="font-bold text-xs text-slate-900">
-                      Rs. {((item.quantity * item.unit_price) - item.discount_amount).toLocaleString()}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center justify-between gap-4">
-                    {/* Qty Modifiers */}
-                    <div className="flex items-center border border-slate-200 rounded">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 rounded-none hover:bg-slate-100"
-                        onClick={() => handleUpdateQty(idx, -1)}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="px-3 text-xs font-bold text-slate-800">{item.quantity}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 rounded-none hover:bg-slate-100"
-                        onClick={() => handleUpdateQty(idx, 1)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
+          {/* Scrollable Middle Content */}
+          <div className="flex-1 overflow-y-auto scrollbar-thin divide-y divide-slate-100 p-0">
 
-                    {/* Cost/Discount modifier inputs */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <Label className="text-[9px] text-slate-400 font-bold uppercase">Price</Label>
-                        <Input
-                          type="number"
-                          className="h-7 w-16 text-[10px] px-1 text-center border-slate-200"
-                          value={item.unit_price}
-                          onChange={(e) => handleUpdatePrice(idx, Number(e.target.value))}
-                        />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Label className="text-[9px] text-slate-400 font-bold uppercase">Disc</Label>
-                        <Input
-                          type="number"
-                          className="h-7 w-12 text-[10px] px-1 text-center border-slate-200"
-                          value={item.discount_amount}
-                          onChange={(e) => handleUpdateDiscount(idx, Number(e.target.value))}
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-red-500 hover:bg-red-50"
-                        onClick={() => handleRemoveItem(idx)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
+            {/* Cart Items List */}
+            <div className="divide-y divide-slate-100">
+              {cart.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-slate-400 gap-1.5 p-6">
+                  <ShoppingCart className="h-10 w-10 text-slate-200" />
+                  <p className="text-xs font-semibold">Your cart is empty</p>
+                  <p className="text-[10px]">Add products to proceed to checkout.</p>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                cart.map((item, idx) => (
+                  <div key={item.product.id} className="p-3.5 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex flex-col max-w-[200px]">
+                        <span className="font-bold text-xs text-slate-800 line-clamp-1">{item.product.name}</span>
+                        <span className="text-[9px] text-slate-400 font-semibold font-mono">SKU: {item.product.sku}</span>
+                      </div>
+                      <span className="font-bold text-xs text-slate-900">
+                        Rs. {((item.quantity * item.unit_price) - item.discount_amount).toLocaleString()}
+                      </span>
+                    </div>
 
-        {/* Customer & Checkout Card */}
-        <Card className="border-slate-200/80 shadow-sm shrink-0 flex flex-col max-h-[62%] overflow-hidden">
-          <CardContent className="p-4 space-y-4 flex-1 overflow-y-auto scrollbar-thin">
-            {/* Customer Selector */}
-            <div className="flex items-end gap-2">
-              <div className="grid gap-1.5 flex-1">
-                <Label htmlFor="cust_select" className="text-xs text-slate-600 font-semibold">Select Customer</Label>
-                <select
-                  id="cust_select"
-                  value={selectedCustomerId}
-                  onChange={(e) => setSelectedCustomerId(e.target.value)}
-                  className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none"
-                >
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.phone})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => setCustomerModalOpen(true)}
-                className="h-9 w-9 text-slate-600 border-slate-200 cursor-pointer"
-                title="Add New Customer"
-              >
-                <UserPlus className="h-4 w-4" />
-              </Button>
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Qty Modifiers */}
+                      <div className="flex items-center border border-slate-200 rounded">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-none hover:bg-slate-100"
+                          onClick={() => handleUpdateQty(idx, -1)}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="px-3 text-xs font-bold text-slate-800">{item.quantity}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-none hover:bg-slate-100"
+                          onClick={() => handleUpdateQty(idx, 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+
+                      {/* Cost/Discount modifier inputs */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <Label className="text-[9px] text-slate-400 font-bold uppercase">Price</Label>
+                          <Input
+                            type="number"
+                            className="h-7 w-16 text-[10px] px-1 text-center border-slate-200"
+                            value={item.unit_price}
+                            onChange={(e) => handleUpdatePrice(idx, Number(e.target.value))}
+                          />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Label className="text-[9px] text-slate-400 font-bold uppercase">Disc</Label>
+                          <Input
+                            type="number"
+                            className="h-7 w-12 text-[10px] px-1 text-center border-slate-200"
+                            value={item.discount_amount}
+                            onChange={(e) => handleUpdateDiscount(idx, Number(e.target.value))}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-red-500 hover:bg-red-50"
+                          onClick={() => handleRemoveItem(idx)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
-            {/* Customer ledger information */}
-            {selectedCustomerId !== "00000000-0000-0000-0000-000000000000" && selectedCustomer && (
-              <div className="bg-slate-50 border border-slate-200/60 rounded p-2.5 text-xs space-y-1.5 font-semibold">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Current Ledger Udhaar</span>
-                  <span className="text-red-650 font-bold">Rs. {Number(selectedCustomer.current_balance).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Allowed Credit Limit</span>
-                  <span className="text-slate-700 font-bold">Rs. {Number(selectedCustomer.credit_limit).toLocaleString()}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Customer Purchase History */}
-            {selectedCustomerId !== "00000000-0000-0000-0000-000000000000" && (
-              <div className="bg-slate-50 border border-slate-200/60 rounded p-2.5 text-xs space-y-2">
-                <span className="text-slate-500 font-bold uppercase tracking-wider block border-b border-slate-200 pb-1 text-[9px]">Past Purchase History</span>
-                {loadingHistory ? (
-                  <div className="flex items-center gap-1.5 py-1 text-slate-450">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>Loading past bills...</span>
-                  </div>
-                ) : purchaseHistory.length === 0 ? (
-                  <div className="text-[10px] text-slate-400 py-1 font-medium">No prior purchases recorded.</div>
-                ) : (
-                  <div className="space-y-2 max-h-32 overflow-y-auto divide-y divide-slate-200/60 pr-1">
-                    {purchaseHistory.map((sale) => (
-                      <div key={sale.id} className="pt-1.5 first:pt-0">
-                        <div className="flex justify-between font-bold text-slate-700 text-[10px]">
-                          <span>{sale.invoice_number}</span>
-                          <span>Rs. {Number(sale.grand_total).toLocaleString()}</span>
-                        </div>
-                        <div className="text-[9px] text-slate-400 font-medium">
-                          {new Date(sale.created_at).toLocaleDateString()}
-                        </div>
-                        <div className="mt-1 text-[10px] text-slate-600 space-y-0.5">
-                          {sale.items?.map((item: any) => (
-                            <div key={item.id} className="flex justify-between text-[10px]">
-                              <span className="truncate max-w-[125px]">{item.product?.name}</span>
-                              <span>Qty: {item.quantity}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+            {/* Customer selector & info */}
+            <div className="p-4 space-y-4 bg-slate-50/20">
+              <div className="flex items-end gap-2">
+                <div className="grid gap-1.5 flex-1">
+                  <Label htmlFor="cust_select" className="text-xs text-slate-600 font-semibold">Select Customer</Label>
+                  <select
+                    id="cust_select"
+                    value={selectedCustomerId}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none"
+                  >
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.phone})
+                      </option>
                     ))}
-                  </div>
-                )}
+                  </select>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCustomerModalOpen(true)}
+                  className="h-9 w-9 text-slate-600 border-slate-200 cursor-pointer"
+                  title="Add New Customer"
+                >
+                  <UserPlus className="h-4 w-4" />
+                </Button>
               </div>
-            )}
 
-            {/* Mixed Payment Details */}
-            <div className="border-t border-slate-100 pt-3 space-y-2">
+              {/* Customer ledger information */}
+              {selectedCustomerId !== "00000000-0000-0000-0000-000000000000" && selectedCustomer && (
+                <div className="bg-slate-50 border border-slate-200/60 rounded p-2.5 text-xs space-y-1.5 font-semibold">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Current Ledger Udhaar</span>
+                    <span className="text-red-650 font-bold">Rs. {Number(selectedCustomer.current_balance).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Allowed Credit Limit</span>
+                    <span className="text-slate-700 font-bold">Rs. {Number(selectedCustomer.credit_limit).toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Customer Purchase History */}
+              {selectedCustomerId !== "00000000-0000-0000-0000-000000000000" && (
+                <div className="bg-slate-50 border border-slate-200/60 rounded p-2.5 text-xs space-y-2">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider block border-b border-slate-200 pb-1 text-[9px]">Past Purchase History</span>
+                  {loadingHistory ? (
+                    <div className="flex items-center gap-1.5 py-1 text-slate-455">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span>Loading past bills...</span>
+                    </div>
+                  ) : purchaseHistory.length === 0 ? (
+                    <div className="text-[10px] text-slate-400 py-1 font-medium">No prior purchases recorded.</div>
+                  ) : (
+                    <div className="space-y-2 max-h-32 overflow-y-auto divide-y divide-slate-200/60 pr-1">
+                      {purchaseHistory.map((sale) => (
+                        <div key={sale.id} className="pt-1.5 first:pt-0">
+                          <div className="flex justify-between font-bold text-slate-700 text-[10px]">
+                            <span>{sale.invoice_number}</span>
+                            <span>Rs. {Number(sale.grand_total).toLocaleString()}</span>
+                          </div>
+                          <div className="text-[9px] text-slate-400 font-medium">
+                            {new Date(sale.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="mt-1 text-[10px] text-slate-600 space-y-0.5">
+                            {sale.items?.map((item: any) => (
+                              <div key={item.id} className="flex justify-between text-[10px]">
+                                <span className="truncate max-w-[125px]">{item.product?.name}</span>
+                                <span>Qty: {item.quantity}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Payments & Discount Percent */}
+            <div className="p-4 space-y-4 bg-slate-50/10">
               <Label className="text-xs text-slate-600 font-semibold block">Record Payments</Label>
               <div className="grid grid-cols-2 gap-2">
                 <div className="relative">
@@ -660,11 +661,9 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Percentage Discount */}
-            <div className="border-t border-slate-100 pt-3 space-y-1.5">
-              <div className="flex items-center justify-between">
+              {/* Percentage Discount */}
+              <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
                 <Label htmlFor="disc_percent" className="text-xs text-slate-600 font-semibold">Discount Percent (%)</Label>
                 <Input
                   id="disc_percent"
@@ -678,46 +677,46 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                 />
               </div>
             </div>
+          </div>
 
-          </CardContent>
-
-          {/* Calculations Breakdown outside of scrollable CardContent */}
+          {/* Sticky Calculations Breakdown */}
           <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-2 text-xs font-semibold shrink-0">
             <div className="flex justify-between text-slate-500">
-                <span>Subtotal</span>
-                <span>Rs. {subtotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-slate-500">
-                <span>Discount (-)</span>
-                <span className="text-red-600">Rs. {discountTotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-slate-800 font-bold text-sm border-t border-slate-100 pt-2">
-                <span>Grand Total</span>
-                <span className="text-base font-black text-slate-900">Rs. {grandTotal.toLocaleString()}</span>
-              </div>
-
-              {/* Cash payment calculations */}
-              {totalPaid > 0 && (
-                <div className="flex justify-between text-emerald-600 border-t border-dashed border-slate-200 pt-1.5">
-                  <span>Total Paid (Received)</span>
-                  <span>Rs. {totalPaid.toLocaleString()}</span>
-                </div>
-              )}
-              {changeAmount > 0 && (
-                <div className="flex justify-between text-blue-600 font-bold">
-                  <span>Change Return Cash</span>
-                  <span>Rs. {changeAmount.toLocaleString()}</span>
-                </div>
-              )}
-              {balanceDue > 0 && (
-                <div className="flex justify-between text-red-650 font-bold">
-                  <span>Unpaid Balance (Credit/Udhaar)</span>
-                  <span>Rs. {balanceDue.toLocaleString()}</span>
-                </div>
-              )}
+              <span>Subtotal</span>
+              <span>Rs. {subtotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-slate-500">
+              <span>Discount (-)</span>
+              <span className="text-red-650">Rs. {discountTotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-slate-800 font-bold text-sm border-t border-slate-100 pt-2">
+              <span>Grand Total</span>
+              <span className="text-base font-black text-slate-900">Rs. {grandTotal.toLocaleString()}</span>
             </div>
 
-          <CardFooter className="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-xl flex flex-col gap-2">
+            {/* Cash payment calculations */}
+            {totalPaid > 0 && (
+              <div className="flex justify-between text-emerald-600 border-t border-dashed border-slate-200 pt-1.5">
+                <span>Total Paid (Received)</span>
+                <span>Rs. {totalPaid.toLocaleString()}</span>
+              </div>
+            )}
+            {changeAmount > 0 && (
+              <div className="flex justify-between text-blue-600 font-bold">
+                <span>Change Return Cash</span>
+                <span>Rs. {changeAmount.toLocaleString()}</span>
+              </div>
+            )}
+            {balanceDue > 0 && (
+              <div className="flex justify-between text-red-650 font-bold">
+                <span>Unpaid Balance (Credit/Udhaar)</span>
+                <span>Rs. {balanceDue.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Sticky Actions Footer */}
+          <CardFooter className="p-4 border-t border-slate-100 bg-slate-50/80 rounded-b-xl flex flex-col gap-2 shrink-0">
             <div className="flex gap-2 w-full">
               <Button
                 type="button"
