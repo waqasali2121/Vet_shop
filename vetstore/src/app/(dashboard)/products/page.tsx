@@ -1,4 +1,3 @@
-import * as React from "react"
 import { getProducts, getCategories, getBrands } from "@/lib/actions/products"
 import { ProductListClient } from "@/components/products/product-list-client"
 
@@ -7,6 +6,10 @@ interface SearchParams {
   category?: string
   brand?: string
   page?: string
+  stock?: string
+  expiry?: string
+  sortCol?: string
+  sortOrd?: string
 }
 
 interface PageProps {
@@ -19,10 +22,24 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const category = params.category || ""
   const brand = params.brand || ""
   const page = parseInt(params.page || "1", 10)
+  const stock = params.stock || ""
+  const expiry = params.expiry || ""
+  const sortCol = params.sortCol || "name"
+  const sortOrd = (params.sortOrd || "asc") as "asc" | "desc"
 
   // Concurrent server queries
   const [productsRes, categoriesRes, brandsRes] = await Promise.all([
-    getProducts({ search, categoryId: category, brandId: brand, page, limit: 10 }),
+    getProducts({
+      search,
+      categoryId: category,
+      brandId: brand,
+      page,
+      limit: 10,
+      stockFilter: stock,
+      expiryFilter: expiry,
+      sortColumn: sortCol,
+      sortOrder: sortOrd
+    }),
     getCategories(),
     getBrands(),
   ])

@@ -7,10 +7,12 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { productSchema, type ProductFormValues } from "@/lib/validations/product"
 import { createProduct, updateProduct } from "@/lib/actions/products"
+import { createSupplier } from "@/lib/actions/purchases"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Loader2, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
 
@@ -33,6 +35,47 @@ export function ProductForm({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = React.useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = React.useState(false)
+  const [suppliersList, setSuppliersList] = React.useState<any[]>(suppliers)
+  const [supplierModalOpen, setSupplierModalOpen] = React.useState(false)
+  const [newSupplierName, setNewSupplierName] = React.useState("")
+  const [newSupplierPhone, setNewSupplierPhone] = React.useState("")
+  const [supplierError, setSupplierError] = React.useState<string | null>(null)
+  const [addingSupplier, setAddingSupplier] = React.useState(false)
+
+  const handleQuickAddSupplier = (e: React.FormEvent) => {
+    e.preventDefault()
+    setSupplierError(null)
+    if (!newSupplierName.trim()) {
+      setSupplierError("Supplier name is required.")
+      return
+    }
+    if (!newSupplierPhone.trim() || newSupplierPhone.length < 7) {
+      setSupplierError("Phone number must be at least 7 characters.")
+      return
+    }
+
+    setAddingSupplier(true)
+    startTransition(async () => {
+      const res = await createSupplier({
+        name: newSupplierName,
+        phone: newSupplierPhone,
+        opening_balance: 0,
+        is_active: true
+      })
+
+      if (res.error) {
+        setSupplierError(res.error)
+      } else if (res.data) {
+        const newlyCreated = res.data
+        setSuppliersList(prev => [...prev, newlyCreated].sort((a, b) => a.name.localeCompare(b.name)))
+        setValue("supplier_id", newlyCreated.id)
+        setSupplierModalOpen(false)
+        setNewSupplierName("")
+        setNewSupplierPhone("")
+      }
+      setAddingSupplier(false)
+    })
+  }
 
   const defaultValues: Partial<ProductFormValues> = initialData
     ? {
@@ -219,19 +262,29 @@ export function ProductForm({
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="supplier_id" className="text-slate-700 font-semibold font-mono text-xs uppercase">From Whom We Buy (Supplier)</Label>
-                  <select
-                    id="supplier_id"
-                    {...register("supplier_id")}
-                    disabled={isPending}
-                    className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="">Select Supplier</option>
-                    {suppliers.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <select
+                      id="supplier_id"
+                      {...register("supplier_id")}
+                      disabled={isPending}
+                      className="h-9 flex-1 rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Select Supplier</option>
+                      {suppliersList.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setSupplierModalOpen(true)}
+                      className="h-9 px-3 text-xs font-semibold cursor-pointer border-slate-200"
+                    >
+                      + Add New
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="grid gap-2">
@@ -415,6 +468,72 @@ export function ProductForm({
           </Button>
         </div>
       </form>
+
+      {/* Quick Create Supplier Dialog */}
+      <Dialog open={supplierModalOpen} onOpenChange={(open) => { setSupplierModalOpen(open); setSupplierError(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span>Quick Register Supplier</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleQuickAddSupplier} className="space-y-4">
+            {supplierError && (
+              <div className="rounded-md bg-destructive/10 p-2.5 text-xs text-destructive font-medium border border-destructive/20">
+                {supplierError}
+              </div>
+            )}
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="quick_sup_name" className="text-xs text-slate-650 font-semibold">Supplier Name *</Label>
+              <Input
+                id="quick_sup_name"
+                placeholder="e.g. ICI Pakistan Ltd."
+                value={newSupplierName}
+                onChange={(e) => setNewSupplierName(e.target.value)}
+                disabled={addingSupplier}
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="quick_sup_phone" className="text-xs text-slate-650 font-semibold">Supplier Mobile Number *</Label>
+              <Input
+                id="quick_sup_phone"
+                placeholder="e.g. 0300-1234567"
+                value={newSupplierPhone}
+                onChange={(e) => setNewSupplierPhone(e.target.value)}
+                disabled={addingSupplier}
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSupplierModalOpen(false)}
+                className="font-semibold text-xs py-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={addingSupplier}
+                className="font-bold text-xs py-1 shadow-sm"
+              >
+                {addingSupplier ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Create Supplier"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
