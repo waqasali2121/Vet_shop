@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
@@ -106,8 +107,8 @@ export function Sidebar({ className, onCloseMobile }: SidebarProps) {
     <div className={cn("flex flex-col h-full bg-secondary text-secondary-foreground border-r border-sidebar-border w-64 shadow-md", className)}>
       {/* Sidebar Header Brand */}
       <div className="flex items-center gap-3 px-6 h-16 border-b border-sidebar-border bg-secondary-foreground/5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-inner">
-          <ShieldCheck className="h-5 w-5" />
+        <div className="relative h-9 w-9 overflow-hidden rounded-lg bg-white border border-slate-700 flex items-center justify-center">
+          <Image src="/logo.jpeg" alt="Salman Farsy Vet Store Logo" fill className="object-cover" />
         </div>
         <div className="flex flex-col">
           <span className="font-bold text-sm leading-tight text-white">Salman Farsy</span>

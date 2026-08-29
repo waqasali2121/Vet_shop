@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useTransition } from "react"
+import Image from "next/image"
 import { logout } from "@/app/(auth)/auth-actions"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,9 +50,14 @@ export function Header({
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
-        <div className="hidden md:flex flex-col">
-          <h2 className="text-sm font-bold text-slate-800">Salman Farsy Veterinary Store</h2>
-          <p className="text-[10px] font-semibold text-slate-400">POS Terminal System</p>
+        <div className="hidden md:flex items-center gap-3">
+          <div className="relative h-9 w-9 overflow-hidden rounded-md bg-white border border-slate-200 flex items-center justify-center">
+            <Image src="/logo.jpeg" alt="Salman Farsy Vet Store Logo" fill className="object-cover animate-fade-in" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-sm font-bold text-slate-800 leading-tight">Salman Farsy Veterinary Store</h2>
+            <p className="text-[10px] font-semibold text-slate-400">POS Terminal System</p>
+          </div>
         </div>
       </div>
 

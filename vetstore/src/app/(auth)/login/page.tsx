@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useActionState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { login } from "../auth-actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,10 +18,10 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center justify-center text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <ShieldCheck className="h-6 w-6" />
+          <div className="relative h-20 w-20 overflow-hidden rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center mb-2">
+            <Image src="/logo.jpeg" alt="Salman Farsy Vet Store Logo" fill className="object-cover" />
           </div>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
             Salman Farsy Vet Store
           </h1>
           <p className="mt-1 text-sm text-slate-500 font-medium">
