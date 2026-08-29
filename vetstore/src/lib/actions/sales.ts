@@ -36,18 +36,13 @@ export async function createSale(values: SaleFormValues) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("Unauthorized")
 
-    // 1. Verify Active Open Cash Register Session
-    const { data: activeSession, error: sessionErr } = await supabase
+    // 1. Verify Active Open Cash Register Session (Bypassed)
+    const { data: activeSession } = await supabase
       .from("cash_register_sessions")
       .select("id, expected_closing_cash")
       .eq("cashier_id", user.id)
       .eq("status", "OPEN")
       .maybeSingle()
-
-    if (sessionErr) throw sessionErr
-    if (!activeSession) {
-      return { error: "No active cash register session. Please open the register first." }
-    }
 
     // 2. Fetch Customer Details
     const { data: customer, error: customerErr } = await supabase
@@ -156,7 +151,7 @@ export async function createSale(values: SaleFormValues) {
         invoice_number: invoiceNumber,
         customer_id: values.customer_id,
         cashier_id: user.id,
-        register_session_id: activeSession.id,
+        register_session_id: activeSession?.id || null,
         subtotal: values.subtotal,
         discount_amount: values.discount_amount,
         tax_amount: values.tax_amount,
@@ -271,12 +266,13 @@ export async function createSale(values: SaleFormValues) {
 
     // 9. Update Cash Register Session for Cash Payments
     const cashPayment = values.payments.find(p => p.payment_method === "CASH")
-    if (cashPayment && cashPayment.amount > 0) {
-      const nextExpectedCash = activeSession.expected_closing_cash + cashPayment.amount
+    if (cashPayment && cashPayment.amount > 0 && activeSession) {
+      const session = activeSession as any
+      const nextExpectedCash = session.expected_closing_cash + cashPayment.amount
 
       // Record cash movement (inflow)
       await supabase.from("cash_register_movements").insert({
-        session_id: activeSession.id,
+        session_id: session.id,
         movement_type: "CASH_SALE",
         amount: cashPayment.amount,
         reference_id: sale.id,
@@ -287,7 +283,7 @@ export async function createSale(values: SaleFormValues) {
       await supabase
         .from("cash_register_sessions")
         .update({ expected_closing_cash: nextExpectedCash })
-        .eq("id", activeSession.id)
+        .eq("id", session.id)
     }
 
     // 10. Audit Log
