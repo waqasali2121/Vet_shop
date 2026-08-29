@@ -69,6 +69,27 @@ export function POSTerminal({ initialProducts, customers, activeSession }: POSTe
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCustomerId, setSelectedCustomerId] = useState("00000000-0000-0000-0000-000000000000") // Walk-in
 
+  // Discount & History Management
+  const [discountPercent, setDiscountPercent] = useState("")
+  const [purchaseHistory, setPurchaseHistory] = useState<any[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+
+  // Fetch customer purchase history dynamically when selection changes
+  React.useEffect(() => {
+    if (selectedCustomerId && selectedCustomerId !== "00000000-0000-0000-0000-000000000000") {
+      setLoadingHistory(true)
+      import("@/lib/actions/sales").then(async ({ getCustomerPurchaseHistory }) => {
+        const res = await getCustomerPurchaseHistory(selectedCustomerId)
+        if (res.data) {
+          setPurchaseHistory(res.data)
+        }
+        setLoadingHistory(false)
+      })
+    } else {
+      setPurchaseHistory([])
+    }
+  }, [selectedCustomerId])
+
   // Payment Breakdown
   const [paidCash, setPaidCash] = useState("")
   const [paidEasypaisa, setPaidEasypaisa] = useState("")
@@ -196,7 +217,9 @@ export function POSTerminal({ initialProducts, customers, activeSession }: POSTe
 
   // Totals calculations
   const subtotal = cart.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0)
-  const discountTotal = cart.reduce((sum, item) => sum + Number(item.discount_amount), 0)
+  const itemDiscountTotal = cart.reduce((sum, item) => sum + Number(item.discount_amount), 0)
+  const percentDiscountAmount = subtotal * (Number(discountPercent) / 100 || 0)
+  const discountTotal = itemDiscountTotal + percentDiscountAmount
   const grandTotal = Math.max(0, subtotal - discountTotal)
 
   const numCash = Number(paidCash) || 0
@@ -546,6 +569,43 @@ export function POSTerminal({ initialProducts, customers, activeSession }: POSTe
               </div>
             )}
 
+            {/* Customer Purchase History */}
+            {selectedCustomerId !== "00000000-0000-0000-0000-000000000000" && (
+              <div className="bg-slate-50 border border-slate-200/60 rounded p-2.5 text-xs space-y-2">
+                <span className="text-slate-500 font-bold uppercase tracking-wider block border-b border-slate-200 pb-1 text-[9px]">Past Purchase History</span>
+                {loadingHistory ? (
+                  <div className="flex items-center gap-1.5 py-1 text-slate-450">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Loading past bills...</span>
+                  </div>
+                ) : purchaseHistory.length === 0 ? (
+                  <div className="text-[10px] text-slate-400 py-1 font-medium">No prior purchases recorded.</div>
+                ) : (
+                  <div className="space-y-2 max-h-32 overflow-y-auto divide-y divide-slate-200/60 pr-1">
+                    {purchaseHistory.map((sale) => (
+                      <div key={sale.id} className="pt-1.5 first:pt-0">
+                        <div className="flex justify-between font-bold text-slate-700 text-[10px]">
+                          <span>{sale.invoice_number}</span>
+                          <span>Rs. {Number(sale.grand_total).toLocaleString()}</span>
+                        </div>
+                        <div className="text-[9px] text-slate-400 font-medium">
+                          {new Date(sale.created_at).toLocaleDateString()}
+                        </div>
+                        <div className="mt-1 text-[10px] text-slate-600 space-y-0.5">
+                          {sale.items?.map((item: any) => (
+                            <div key={item.id} className="flex justify-between text-[10px]">
+                              <span className="truncate max-w-[125px]">{item.product?.name}</span>
+                              <span>Qty: {item.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Mixed Payment Details */}
             <div className="border-t border-slate-100 pt-3 space-y-2">
               <Label className="text-xs text-slate-600 font-semibold block">Record Payments</Label>
@@ -590,6 +650,23 @@ export function POSTerminal({ initialProducts, customers, activeSession }: POSTe
                     className="h-8 pl-12 text-xs border-slate-200 font-bold text-slate-800"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Percentage Discount */}
+            <div className="border-t border-slate-100 pt-3 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="disc_percent" className="text-xs text-slate-600 font-semibold">Discount Percent (%)</Label>
+                <Input
+                  id="disc_percent"
+                  type="number"
+                  placeholder="0"
+                  max="100"
+                  min="0"
+                  value={discountPercent}
+                  onChange={(e) => setDiscountPercent(e.target.value)}
+                  className="h-8 w-20 text-xs text-center border-slate-200 font-bold text-slate-800"
+                />
               </div>
             </div>
 

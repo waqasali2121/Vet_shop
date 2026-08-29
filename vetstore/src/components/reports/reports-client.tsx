@@ -80,6 +80,29 @@ export function ReportsClient({
   const [financialReport, setFinancialReport] = useState<FinancialReportData>(initialFinancial)
   const [error, setError] = useState<string | null>(null)
 
+  // Group sales by day for the "Daily Backup" representation
+  const dailySummary = React.useMemo(() => {
+    const groups: Record<string, { totalSales: number; invoiceCount: number; cashSales: number; creditSales: number }> = {}
+
+    salesReport.sales.forEach(sale => {
+      if (sale.sale_status !== "COMPLETED") return // exclude voided
+      const dateStr = new Date(sale.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+      if (!groups[dateStr]) {
+        groups[dateStr] = { totalSales: 0, invoiceCount: 0, cashSales: 0, creditSales: 0 }
+      }
+
+      groups[dateStr].totalSales += Number(sale.grand_total)
+      groups[dateStr].invoiceCount += 1
+      groups[dateStr].cashSales += Number(sale.paid_amount)
+      groups[dateStr].creditSales += Number(sale.balance_amount)
+    })
+
+    return Object.entries(groups).map(([date, data]) => ({
+      date,
+      ...data
+    })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [salesReport.sales])
+
   const handleApplyFilters = () => {
     setError(null)
     startTransition(async () => {
@@ -195,28 +218,28 @@ export function ReportsClient({
       {/* Title */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Reports Terminal</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Daily Backup & Sales summary</h1>
           <p className="text-sm text-slate-500 font-medium">
-            Analyze sales performance, track gross profit, check inventory valuation, and reconcile accounts.
+            Monitor daily sales transactions, check overall stock valuation, and download backups.
           </p>
         </div>
         <div className="flex gap-2">
           {activeTab === "sales" && (
             <Button onClick={exportSalesCSV} variant="outline" className="font-semibold text-xs gap-1.5 cursor-pointer">
               <Download className="h-3.5 w-3.5" />
-              Export Sales CSV
+              Download Sales Backup
             </Button>
           )}
           {activeTab === "inventory" && (
             <Button onClick={exportInventoryCSV} variant="outline" className="font-semibold text-xs gap-1.5 cursor-pointer">
               <Download className="h-3.5 w-3.5" />
-              Export Inventory CSV
+              Download Stock Backup
             </Button>
           )}
           {activeTab === "financial" && (
             <Button onClick={exportFinancialCSV} variant="outline" className="font-semibold text-xs gap-1.5 cursor-pointer">
               <Download className="h-3.5 w-3.5" />
-              Export Financials CSV
+              Download Financial Ledger
             </Button>
           )}
         </div>
@@ -287,7 +310,7 @@ export function ReportsClient({
               : "border-transparent text-slate-550 hover:text-slate-900"
           }`}
         >
-          Sales & Profit Analytics
+          Daily Sales Backup & Analytics
         </button>
         <button
           onClick={() => setActiveTab("inventory")}
@@ -297,7 +320,7 @@ export function ReportsClient({
               : "border-transparent text-slate-550 hover:text-slate-900"
           }`}
         >
-          Stock Valuation
+          Available Stock & Valuation
         </button>
         <button
           onClick={() => setActiveTab("financial")}
@@ -307,7 +330,7 @@ export function ReportsClient({
               : "border-transparent text-slate-550 hover:text-slate-900"
           }`}
         >
-          Financial Statement
+          Accounts & Expenses Ledger
         </button>
       </div>
 
@@ -363,6 +386,61 @@ export function ReportsClient({
                 </CardContent>
               </Card>
             </div>
+
+            {/* Daily Backup Summary (Daily grouped totals) */}
+            <Card className="border-slate-200/80 shadow-sm">
+              <CardHeader className="pb-2 border-b border-slate-100 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-bold text-slate-900">Daily Sales Summary Backup</CardTitle>
+                  <CardDescription className="text-xs">Summary of total sales and invoices collected per day.</CardDescription>
+                </div>
+                <Button
+                  onClick={() => {
+                    const headers = ["Date", "Invoices Count", "Total Sales (PKR)", "Cash Sales (PKR)", "Credit/Udhaar Sales (PKR)"]
+                    const rows = dailySummary.map(d => [d.date, d.invoiceCount, d.totalSales, d.cashSales, d.creditSales])
+                    exportToCSV(`Daily_Sales_Backup_${startDate}_to_${endDate}`, headers, rows)
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="font-semibold text-xs gap-1.5 cursor-pointer shrink-0"
+                >
+                  <Download className="h-3 w-3" />
+                  Backup Daily Data (CSV)
+                </Button>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/75 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <th className="px-4 py-3">Date</th>
+                        <th className="px-4 py-3 text-center">Invoices count</th>
+                        <th className="px-4 py-3">Total Sold</th>
+                        <th className="px-4 py-3">Paid Cash</th>
+                        <th className="px-4 py-3 text-red-650">Credit/Udhaar Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs">
+                      {dailySummary.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="text-center py-6 text-slate-400 font-medium">No sales recorded in this date range.</td>
+                        </tr>
+                      ) : (
+                        dailySummary.map(d => (
+                          <tr key={d.date} className="hover:bg-slate-50/30 font-semibold">
+                            <td className="px-4 py-3.5 text-slate-700 font-bold">{d.date}</td>
+                            <td className="px-4 py-3.5 text-center text-slate-600">{d.invoiceCount} bills</td>
+                            <td className="px-4 py-3.5 text-slate-900 font-bold">Rs. {d.totalSales.toLocaleString()}</td>
+                            <td className="px-4 py-3.5 text-emerald-650">Rs. {d.cashSales.toLocaleString()}</td>
+                            <td className="px-4 py-3.5 text-red-650">Rs. {d.creditSales.toLocaleString()}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Payments & List Table */}
             <div className="grid gap-6 md:grid-cols-3">

@@ -10,8 +10,8 @@ import { createProduct, updateProduct } from "@/lib/actions/products"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, Loader2, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
 
 interface ProductFormProps {
@@ -19,6 +19,7 @@ interface ProductFormProps {
   categories: { id: string; name: string }[]
   brands: { id: string; name: string }[]
   units: { id: string; name: string; abbreviation: string }[]
+  suppliers?: { id: string; name: string }[]
 }
 
 export function ProductForm({
@@ -26,10 +27,12 @@ export function ProductForm({
   categories,
   brands,
   units,
+  suppliers = [],
 }: ProductFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = React.useState<string | null>(null)
+  const [showAdvanced, setShowAdvanced] = React.useState(false)
 
   const defaultValues: Partial<ProductFormValues> = initialData
     ? {
@@ -53,19 +56,23 @@ export function ProductForm({
         track_batch: initialData.track_batch ?? true,
         track_expiry: initialData.track_expiry ?? true,
         is_active: initialData.is_active ?? true,
+        supplier_id: "",
+        initial_quantity: 0,
+        batch_number: "",
+        expiry_date: "",
       }
     : {
         name: "",
         generic_name: "",
         sku: "",
         barcode: "",
-        category_id: "",
-        brand_id: "",
+        category_id: categories[0]?.id || "",
+        brand_id: brands[0]?.id || "",
         manufacturer: "",
         dosage_form: "",
         strength: "",
         pack_size: "",
-        unit_id: "",
+        unit_id: units[0]?.id || "",
         purchase_price_reference: 0,
         retail_price: 0,
         wholesale_price: 0,
@@ -75,6 +82,10 @@ export function ProductForm({
         track_batch: true,
         track_expiry: true,
         is_active: true,
+        supplier_id: "",
+        initial_quantity: 0,
+        batch_number: "",
+        expiry_date: "",
       }
 
   const {
@@ -88,10 +99,19 @@ export function ProductForm({
     defaultValues,
   })
 
-  // Watch trackers
-  const trackBatch = watch("track_batch")
-  const trackExpiry = watch("track_expiry")
-  const isActive = watch("is_active")
+  // Sync wholesale & min sale prices with retail and purchase reference
+  const retailPrice = watch("retail_price")
+  const purchasePrice = watch("purchase_price_reference")
+
+  React.useEffect(() => {
+    if (!initialData) {
+      // Set default wholesale & minimum sale prices based on user inputs to prevent validation errors
+      if (retailPrice) {
+        setValue("wholesale_price", Number(purchasePrice) || Number(retailPrice))
+        setValue("minimum_sale_price", Number(purchasePrice) || Number(retailPrice))
+      }
+    }
+  }, [retailPrice, purchasePrice, setValue, initialData])
 
   const onSubmit = (data: ProductFormValues) => {
     setError(null)
@@ -113,7 +133,7 @@ export function ProductForm({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-4">
         <Link href="/products">
           <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer">
@@ -122,7 +142,7 @@ export function ProductForm({
           </Button>
         </Link>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {initialData ? "Edit Product" : "Add New Product"}
+          {initialData ? "Edit Product Details" : "Add New Medicine"}
         </h1>
       </div>
 
@@ -132,88 +152,148 @@ export function ProductForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* General Information Card */}
-          <Card className="border-slate-200/80 shadow-sm md:col-span-2">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Core Product Information */}
+        <Card className="border-slate-200/80 shadow-sm">
+          <CardHeader className="pb-3 border-b border-slate-100">
+            <CardTitle className="font-bold text-slate-900 text-lg">Medicine Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 pt-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name" className="text-slate-700 font-semibold">Medicine Name *</Label>
+              <Input
+                id="name"
+                placeholder="e.g. Oxytetracycline 10% Injection"
+                {...register("name")}
+                disabled={isPending}
+                className="border-slate-200 focus:border-primary focus:ring-primary font-medium"
+              />
+              {errors.name && (
+                <p className="text-xs font-semibold text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="purchase_price_reference" className="text-slate-700 font-semibold">Purchase Price (Rs.) *</Label>
+                <Input
+                  id="purchase_price_reference"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  {...register("purchase_price_reference")}
+                  disabled={isPending}
+                  className="border-slate-200 focus:border-primary focus:ring-primary"
+                />
+                {errors.purchase_price_reference && (
+                  <p className="text-xs font-semibold text-destructive">{errors.purchase_price_reference.message}</p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="retail_price" className="text-slate-700 font-semibold">Selling Price (Rs.) *</Label>
+                <Input
+                  id="retail_price"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  {...register("retail_price")}
+                  disabled={isPending}
+                  className="border-slate-200 focus:border-primary focus:ring-primary"
+                />
+                {errors.retail_price && (
+                  <p className="text-xs font-semibold text-destructive">{errors.retail_price.message}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Initial Stock Seeding (only visible on creation) */}
+        {!initialData && (
+          <Card className="border-slate-200/80 shadow-sm">
             <CardHeader className="pb-3 border-b border-slate-100">
-              <CardTitle className="font-bold text-slate-900">General Information</CardTitle>
-              <CardDescription className="text-slate-500">
-                Primary identifier details, names, generic formulations and codes.
-              </CardDescription>
+              <CardTitle className="font-bold text-slate-900 text-lg">Initial Stock Setup</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 pt-4 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="name" className="text-slate-700">Product Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="e.g. Ivermectin Injection 1%"
-                  {...register("name")}
-                  disabled={isPending}
-                  className="border-slate-200 focus:border-primary focus:ring-primary"
-                />
-                {errors.name && (
-                  <p className="text-xs font-semibold text-destructive">{errors.name.message}</p>
-                )}
+            <CardContent className="grid gap-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="supplier_id" className="text-slate-700 font-semibold font-mono text-xs uppercase">From Whom We Buy (Supplier)</Label>
+                  <select
+                    id="supplier_id"
+                    {...register("supplier_id")}
+                    disabled={isPending}
+                    className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="">Select Supplier</option>
+                    {suppliers.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="initial_quantity" className="text-slate-700 font-semibold font-mono text-xs uppercase">Quantity Received</Label>
+                  <Input
+                    id="initial_quantity"
+                    type="number"
+                    placeholder="e.g. 50"
+                    {...register("initial_quantity")}
+                    disabled={isPending}
+                    className="border-slate-200 focus:border-primary focus:ring-primary"
+                  />
+                </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="generic_name" className="text-slate-700">Generic Formula Name</Label>
-                <Input
-                  id="generic_name"
-                  placeholder="e.g. Ivermectin"
-                  {...register("generic_name")}
-                  disabled={isPending}
-                  className="border-slate-200 focus:border-primary focus:ring-primary"
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="batch_number" className="text-slate-700 font-semibold font-mono text-xs uppercase">Batch Number</Label>
+                  <Input
+                    id="batch_number"
+                    placeholder="e.g. BAT-101 (Optional)"
+                    {...register("batch_number")}
+                    disabled={isPending}
+                    className="border-slate-200 focus:border-primary focus:ring-primary"
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="sku" className="text-slate-700">SKU (Stock Keeping Unit)</Label>
-                <Input
-                  id="sku"
-                  placeholder="e.g. IVM-100ML-001"
-                  {...register("sku")}
-                  disabled={isPending}
-                  className="border-slate-200 focus:border-primary focus:ring-primary"
-                />
-                {errors.sku && (
-                  <p className="text-xs font-semibold text-destructive">{errors.sku.message}</p>
-                )}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="barcode" className="text-slate-700">Barcode / EAN</Label>
-                <Input
-                  id="barcode"
-                  placeholder="Scan or type barcode number..."
-                  {...register("barcode")}
-                  disabled={isPending}
-                  className="border-slate-200 focus:border-primary focus:ring-primary"
-                />
-                {errors.barcode && (
-                  <p className="text-xs font-semibold text-destructive">{errors.barcode.message}</p>
-                )}
+                <div className="grid gap-2">
+                  <Label htmlFor="expiry_date" className="text-slate-700 font-semibold font-mono text-xs uppercase">Expiry Date</Label>
+                  <Input
+                    id="expiry_date"
+                    type="date"
+                    {...register("expiry_date")}
+                    disabled={isPending}
+                    className="border-slate-200 focus:border-primary focus:ring-primary"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
+        )}
 
-          {/* Categorization & Packing Card */}
-          <Card className="border-slate-200/80 shadow-sm">
-            <CardHeader className="pb-3 border-b border-slate-100">
-              <CardTitle className="font-bold text-slate-900">Categorization & Packing</CardTitle>
-              <CardDescription className="text-slate-500">
-                Units of measurement, categories, dosage formats, and strengths.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 pt-4">
+        {/* Collapsible Advanced Section */}
+        <div className="border border-slate-200/60 rounded-lg overflow-hidden bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 text-slate-700 font-semibold text-sm cursor-pointer select-none"
+          >
+            <span>Advanced Configuration (Category, Unit, Limits)</span>
+            {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+
+          {showAdvanced && (
+            <div className="p-4 grid gap-4 md:grid-cols-2 border-t border-slate-100">
               <div className="grid gap-2">
-                <Label htmlFor="category_id" className="text-slate-700">Category *</Label>
+                <Label htmlFor="category_id" className="text-slate-700">Category</Label>
                 <select
                   id="category_id"
                   {...register("category_id")}
                   disabled={isPending}
-                  className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none"
                 >
                   <option value="">Select Category</option>
                   {categories.map((c) => (
@@ -222,38 +302,15 @@ export function ProductForm({
                     </option>
                   ))}
                 </select>
-                {errors.category_id && (
-                  <p className="text-xs font-semibold text-destructive">{errors.category_id.message}</p>
-                )}
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="brand_id" className="text-slate-700">Brand *</Label>
-                <select
-                  id="brand_id"
-                  {...register("brand_id")}
-                  disabled={isPending}
-                  className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="">Select Brand</option>
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.brand_id && (
-                  <p className="text-xs font-semibold text-destructive">{errors.brand_id.message}</p>
-                )}
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="unit_id" className="text-slate-700">Base Unit *</Label>
+                <Label htmlFor="unit_id" className="text-slate-700">Base Unit</Label>
                 <select
                   id="unit_id"
                   {...register("unit_id")}
                   disabled={isPending}
-                  className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none"
                 >
                   <option value="">Select Base Unit</option>
                   {units.map((u) => (
@@ -262,203 +319,85 @@ export function ProductForm({
                     </option>
                   ))}
                 </select>
-                {errors.unit_id && (
-                  <p className="text-xs font-semibold text-destructive">{errors.unit_id.message}</p>
-                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="dosage_form" className="text-slate-700">Dosage Form</Label>
-                  <Input
-                    id="dosage_form"
-                    placeholder="e.g. Injection, Powder"
-                    {...register("dosage_form")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="strength" className="text-slate-700">Strength</Label>
-                  <Input
-                    id="strength"
-                    placeholder="e.g. 10%, 100mg"
-                    {...register("strength")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="brand_id" className="text-slate-700">Brand</Label>
+                <select
+                  id="brand_id"
+                  {...register("brand_id")}
+                  disabled={isPending}
+                  className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 focus:outline-none"
+                >
+                  <option value="">Select Brand</option>
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="pack_size" className="text-slate-700">Pack Size</Label>
-                  <Input
-                    id="pack_size"
-                    placeholder="e.g. 100ml, 50 tabs"
-                    {...register("pack_size")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="manufacturer" className="text-slate-700">Manufacturer</Label>
-                  <Input
-                    id="manufacturer"
-                    placeholder="e.g. Zoetis Inc."
-                    {...register("manufacturer")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Pricing & Control Card */}
-          <Card className="border-slate-200/80 shadow-sm">
-            <CardHeader className="pb-3 border-b border-slate-100">
-              <CardTitle className="font-bold text-slate-900">Pricing & Controls</CardTitle>
-              <CardDescription className="text-slate-500">
-                Setup sales pricing structures, stock levels, and FEFO inventory tracking.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 pt-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="purchase_price_reference" className="text-slate-700">Reference Cost (Rs.)</Label>
-                  <Input
-                    id="purchase_price_reference"
-                    type="number"
-                    step="0.01"
-                    {...register("purchase_price_reference")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                  {errors.purchase_price_reference && (
-                    <p className="text-xs font-semibold text-destructive">{errors.purchase_price_reference.message}</p>
-                  )}
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="retail_price" className="text-slate-700">Retail Price (Rs.) *</Label>
-                  <Input
-                    id="retail_price"
-                    type="number"
-                    step="0.01"
-                    {...register("retail_price")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                  {errors.retail_price && (
-                    <p className="text-xs font-semibold text-destructive">{errors.retail_price.message}</p>
-                  )}
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="generic_name" className="text-slate-700">Generic Formula</Label>
+                <Input
+                  id="generic_name"
+                  placeholder="e.g. Oxytetracycline"
+                  {...register("generic_name")}
+                  disabled={isPending}
+                  className="border-slate-200"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="wholesale_price" className="text-slate-700">Wholesale Price (Rs.) *</Label>
-                  <Input
-                    id="wholesale_price"
-                    type="number"
-                    step="0.01"
-                    {...register("wholesale_price")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                  {errors.wholesale_price && (
-                    <p className="text-xs font-semibold text-destructive">{errors.wholesale_price.message}</p>
-                  )}
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="minimum_sale_price" className="text-slate-700">Min. Sale Price (Rs.) *</Label>
-                  <Input
-                    id="minimum_sale_price"
-                    type="number"
-                    step="0.01"
-                    {...register("minimum_sale_price")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                  {errors.minimum_sale_price && (
-                    <p className="text-xs font-semibold text-destructive">{errors.minimum_sale_price.message}</p>
-                  )}
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="sku" className="text-slate-700">SKU Code</Label>
+                <Input
+                  id="sku"
+                  placeholder="Auto-generated if empty"
+                  {...register("sku")}
+                  disabled={isPending}
+                  className="border-slate-200"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="minimum_stock" className="text-slate-700">Min. Alert Stock</Label>
-                  <Input
-                    id="minimum_stock"
-                    type="number"
-                    {...register("minimum_stock")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                  {errors.minimum_stock && (
-                    <p className="text-xs font-semibold text-destructive">{errors.minimum_stock.message}</p>
-                  )}
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="reorder_quantity" className="text-slate-700">Reorder Qty</Label>
-                  <Input
-                    id="reorder_quantity"
-                    type="number"
-                    {...register("reorder_quantity")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                  {errors.reorder_quantity && (
-                    <p className="text-xs font-semibold text-destructive">{errors.reorder_quantity.message}</p>
-                  )}
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="barcode" className="text-slate-700">Barcode</Label>
+                <Input
+                  id="barcode"
+                  placeholder="Scan or enter barcode"
+                  {...register("barcode")}
+                  disabled={isPending}
+                  className="border-slate-200"
+                />
               </div>
 
-              {/* Tracking Policies */}
-              <div className="pt-2 space-y-3">
-                <Label className="text-slate-700 block font-bold">Inventory Control & Policies</Label>
-                <div className="flex flex-col gap-2.5">
-                  <label className="flex items-center gap-2.5 cursor-pointer text-sm text-slate-700 font-semibold select-none">
-                    <input
-                      type="checkbox"
-                      checked={trackBatch}
-                      onChange={(e) => setValue("track_batch", e.target.checked)}
-                      disabled={isPending}
-                      className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
-                    />
-                    Enable batch-wise tracking
-                  </label>
-
-                  <label className="flex items-center gap-2.5 cursor-pointer text-sm text-slate-700 font-semibold select-none">
-                    <input
-                      type="checkbox"
-                      checked={trackExpiry}
-                      onChange={(e) => setValue("track_expiry", e.target.checked)}
-                      disabled={isPending}
-                      className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
-                    />
-                    Enable expiry date tracking (FEFO)
-                  </label>
-
-                  <label className="flex items-center gap-2.5 cursor-pointer text-sm text-slate-700 font-semibold select-none">
-                    <input
-                      type="checkbox"
-                      checked={isActive}
-                      onChange={(e) => setValue("is_active", e.target.checked)}
-                      disabled={isPending}
-                      className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
-                    />
-                    Active and sellable in POS
-                  </label>
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="minimum_stock" className="text-slate-700">Alert Limit (Min Stock)</Label>
+                <Input
+                  id="minimum_stock"
+                  type="number"
+                  {...register("minimum_stock")}
+                  disabled={isPending}
+                  className="border-slate-200"
+                />
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="grid gap-2">
+                <Label htmlFor="reorder_quantity" className="text-slate-700">Reorder Quantity</Label>
+                <Input
+                  id="reorder_quantity"
+                  type="number"
+                  {...register("reorder_quantity")}
+                  disabled={isPending}
+                  className="border-slate-200"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Form Footer */}
-        <div className="flex justify-end gap-3 mt-6">
+        {/* Buttons */}
+        <div className="flex justify-end gap-3 pt-2">
           <Link href="/products">
             <Button type="button" variant="outline" disabled={isPending} className="font-semibold cursor-pointer">
               Cancel
@@ -471,7 +410,7 @@ export function ProductForm({
                 Saving...
               </>
             ) : (
-              "Save Product"
+              "Save Medicine"
             )}
           </Button>
         </div>

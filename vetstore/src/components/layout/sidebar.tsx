@@ -31,79 +31,22 @@ type SidebarItem = {
 
 const sidebarItems: SidebarItem[] = [
   {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "POS",
-    href: "/pos",
-    icon: ShoppingCart,
+    title: "Products",
+    href: "/products",
+    icon: Package,
   },
   {
     title: "Sales",
-    icon: TrendingUp,
+    icon: ShoppingCart,
     items: [
-      { title: "All Sales", href: "/sales" },
-      { title: "Sales Returns", href: "/sales/returns" },
-      { title: "Customer Payments", href: "/sales/payments" },
+      { title: "New Sale (POS)", href: "/pos" },
+      { title: "Sales History", href: "/sales" },
     ],
   },
   {
-    title: "Inventory",
-    icon: Package,
-    items: [
-      { title: "Products", href: "/products" },
-      { title: "Categories", href: "/inventory/categories" },
-      { title: "Brands", href: "/inventory/brands" },
-      { title: "Current Stock", href: "/inventory/stock" },
-      { title: "Batches", href: "/inventory/batches" },
-      { title: "Expiry Management", href: "/inventory/expiry" },
-      { title: "Stock Adjustments", href: "/inventory/adjustments" },
-    ],
-  },
-  {
-    title: "Purchases",
-    icon: Import,
-    items: [
-      { title: "All Purchases", href: "/purchases" },
-      { title: "Purchase Returns", href: "/purchases/returns" },
-      { title: "Suppliers", href: "/suppliers" },
-    ],
-  },
-  {
-    title: "Customers",
-    icon: Users,
-    items: [
-      { title: "Customer List", href: "/customers" },
-      { title: "Customer Ledger", href: "/customers/ledger" },
-      { title: "Receivables", href: "/customers/receivables" },
-    ],
-  },
-  {
-    title: "Expenses",
-    href: "/expenses",
-    icon: Receipt,
-  },
-  {
-    title: "Cash Register",
-    href: "/cash-register",
-    icon: Coins,
-  },
-  {
-    title: "Reports",
+    title: "Daily Backup",
     href: "/reports",
     icon: BarChart3,
-  },
-  {
-    title: "Users & Roles",
-    href: "/users",
-    icon: UserCog,
-  },
-  {
-    title: "Settings",
-    href: "/settings",
-    icon: Settings,
   },
 ]
 

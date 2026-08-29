@@ -564,3 +564,34 @@ export async function voidSale(saleId: string, reason: string) {
   }
 }
 
+export async function getCustomerPurchaseHistory(customerId: string) {
+  try {
+    const supabase = await createClient()
+
+    const { data: sales, error } = await supabase
+      .from("sales")
+      .select(`
+        id,
+        invoice_number,
+        created_at,
+        grand_total,
+        items:sale_items(
+          id,
+          quantity,
+          unit_price,
+          product:products(name)
+        )
+      `)
+      .eq("customer_id", customerId)
+      .eq("sale_status", "COMPLETED")
+      .order("created_at", { ascending: false })
+      .limit(5)
+
+    if (error) throw error
+    return { data: sales || [] }
+  } catch (err: any) {
+    return { error: err.message || "Failed to fetch customer purchase history" }
+  }
+}
+
+

@@ -5,13 +5,13 @@ export const productBaseSchema = z.object({
   generic_name: z.string().optional().nullable(),
   sku: z.string().optional().nullable().or(z.literal("")),
   barcode: z.string().optional().nullable().or(z.literal("")),
-  category_id: z.string().uuid("Please select a valid category"),
-  brand_id: z.string().uuid("Please select a valid brand"),
+  category_id: z.string().uuid("Please select a valid category").optional().nullable().or(z.literal("")),
+  brand_id: z.string().uuid("Please select a valid brand").optional().nullable().or(z.literal("")),
   manufacturer: z.string().optional().nullable(),
   dosage_form: z.string().optional().nullable(),
   strength: z.string().optional().nullable(),
   pack_size: z.string().optional().nullable(),
-  unit_id: z.string().uuid("Please select a valid unit"),
+  unit_id: z.string().uuid("Please select a valid unit").optional().nullable().or(z.literal("")),
   purchase_price_reference: z.coerce.number().min(0, "Purchase price reference must be at least 0"),
   retail_price: z.coerce.number().min(0, "Retail price must be at least 0"),
   wholesale_price: z.coerce.number().min(0, "Wholesale price must be at least 0"),
@@ -21,6 +21,10 @@ export const productBaseSchema = z.object({
   track_batch: z.boolean().default(true),
   track_expiry: z.boolean().default(true),
   is_active: z.boolean().default(true),
+  supplier_id: z.string().uuid().optional().nullable().or(z.literal("")),
+  initial_quantity: z.coerce.number().min(0).optional().default(0),
+  batch_number: z.string().optional().nullable().or(z.literal("")),
+  expiry_date: z.string().optional().nullable().or(z.literal("")),
 })
 
 export const productSchema = productBaseSchema.refine(data => data.minimum_sale_price <= data.retail_price, {

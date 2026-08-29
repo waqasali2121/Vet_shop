@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS User Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --primary-color: #0f5132;
+      --primary-hover: #198754;
+      --accent-blue: #2563eb;
+      --accent-light: #e2f0d9;
+      --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0f172a;
+      --bg-card: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary-color: #198754;
+      --primary-hover: #22c55e;
+      --accent-blue: #3b82f6;
+      --accent-light: #1e293b;
+      --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.6;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Print styling overrides */
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #000000;
+        font-size: 12pt;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+      .card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+      }
+      a {
+        text-decoration: underline;
+        color: #000;
+      }
+      main {
+        margin-left: 0 !important;
+        padding: 0 !important;
+      }
+    }
+
+    header {
+      background-color: var(--primary-color);
+      color: #ffffff;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 4px solid var(--primary-hover);
+    }
+
+    header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s ease-in-out;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 1.25rem;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+    }
+
+    ol, ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1.25rem;
+      color: var(--text-muted);
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .code-block {
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      overflow-x: auto;
+      color: var(--text-main);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background-color: var(--border-color);
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-primary {
+      background-color: var(--accent-light);
+      color: var(--primary-color);
+    }
+
+    .badge-blue {
+      background-color: #eff6ff;
+      color: var(--accent-blue);
+    }
+
+    .flex-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-box {
+      background-color: var(--bg-primary);
+      border-left: 4px solid var(--primary-color);
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1.25rem;
+    }
+
+    .info-box p {
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+
+    .print-button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background-color 0.2s;
+    }
+
+    .print-button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .nav-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-number {
+      background-color: var(--primary-color);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Salman Farsy Veterinary Store</h1>
+    <p>POS & Inventory Control System — End-User Operations Manual</p>
+  </header>
+
+  <div class="container">
+    <div class="nav-actions no-print">
+      <button class="print-button" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Save as PDF / Print
+      </button>
+    </div>
+
+    <div class="grid">
+      <!-- Section 1: Overview & Authentication -->
+      <section class="card">
+        <h2>
+          <span class="step-number">1</span>
+          System Access & Authentication
+        </h2>
+        <p>The Salman Farsy Veterinary Store system is securely hosted on the cloud via Vercel and backed by Supabase. Access levels are strictly regulated by User Roles.</p>
+
+        <h3>Accessing the Portal</h3>
+        <ul>
+          <li><strong>Production Link:</strong> <a href="https://vetstore-nine.vercel.app/login" target="_blank">https://vetstore-nine.vercel.app/login</a></li>
+          <li><strong>Default Admin Account:</strong>
+            <ul>
+              <li><strong>Email:</strong> <code>waqasawkum3@gmail.com</code></li>
+              <li><strong>Password:</strong> <code>Admin@123</code></li>
+            </ul>
+          </li>
+        </ul>
+
+        <div class="info-box">
+          <p><strong>Note on Security:</strong> This account has the <span class="badge badge-primary">OWNER</span> role, which yields full administrative access. Do not share these credentials with unauthorized staff.</p>
+        </div>
+      </section>
+
+      <!-- Section 2: Adding a Medicine Flow -->
+      <section class="card page-break">
+        <h2>
+          <span class="step-number">2</span>
+          How to Add a Medicine (Catalog Entry)
+        </h2>
+        <p>Adding stock quantities to your inventory requires a two-step flow: <strong>first</strong> creating the product card (catalog definition), and <strong>second</strong> recording the purchase receipt to bind quantities and actual batch prices.</p>
+
+        <h3>Step 2.1: Add the Supplier</h3>
+        <p>Before adding stock, ensure the medicine's distributor exists:</p>
+        <ol>
+          <li>Navigate to <strong>Purchases</strong> -> <strong>Suppliers</strong>.</li>
+          <li>Click <strong>New Supplier</strong>.</li>
+          <li>Enter the <strong>Supplier Name</strong> (e.g. <i>ICI Pakistan</i> or <i>Star Laboratories</i>) and a valid **Phone Number**.</li>
+          <li>Click <strong>Save Supplier</strong>.</li>
+        </ol>
+
+        <h3>Step 2.2: Define the Product (Medicine Card)</h3>
+        <ol>
+          <li>Navigate to <strong>Inventory</strong> -> <strong>Products</strong> on the sidebar.</li>
+          <li>Click <strong>Add Product</strong> (top-right).</li>
+          <li>Fill in the core parameters:
+            <ul>
+              <li><strong>Name:</strong> Medicine generic/brand name (e.g. <i>Oxytetracycline 10%</i>).</li>
+              <li><strong>Category:</strong> Select from the list (e.g., <i>Injections</i>, <i>Antibiotics</i>, etc.).</li>
+              <li><strong>Brand:</strong> Select the manufacturer.</li>
+              <li><strong>Unit:</strong> Select the packaging unit (e.g., <i>Vial</i>, <i>Box</i>, <i>Piece</i>).</li>
+              <li><strong>Retail Price (selling price):</strong> The price you will charge the customer.</li>
+            </ul>
+          </li>
+          <li>Ensure **Track Batch** and **Track Expiry** toggles are enabled.</li>
+          <li>Click <strong>Save Product</strong>.</li>
+        </ol>
+      </section>
+
+      <!-- Section 3: Recording Purchase & Inventory -->
+      <section class="card page-break">
+        <h2>
+          <span class="step-number">3</span>
+          Adding Stock Quantities (Purchases)
+        </h2>
+        <p>Do not change stock levels manually. Instead, log the supplier's invoice. This ensures purchase ledgers and batch details remain accurate.</p>
+
+        <h3>Recording the Supplier Invoice</h3>
+        <ol>
+          <li>Go to <strong>Purchases</strong> -> <strong>New Purchase</strong>.</li>
+          <li>Select the **Supplier** and input the **Invoice/Reference Number**.</li>
+          <li>In the product search, look up the medicine you created in Section 2.</li>
+          <li>Input the exact details from your vendor invoice:
+            <ul>
+              <li><strong>Quantity:</strong> Number of units bought.</li>
+              <li><strong>Unit Cost (Purchase Price):</strong> Price paid per unit.</li>
+              <li><strong>Batch Number:</strong> The batch identifier printed on the vial or packaging.</li>
+              <li><strong>Expiry Date:</strong> The official expiry date of this specific batch.</li>
+            </ul>
+          </li>
+          <li>Select **Payment Details** (Cash, Bank, or Credit/Due balance).</li>
+          <li>Click <strong>Submit Purchase</strong>.</li>
+        </ol>
+
+        <div class="info-box">
+          <p><strong>FEFO Engine (First Expire, First Out):</strong> The system automatically assigns POS checkout transactions to the earliest expiring batch of that product. Expired batches are automatically blocked from checkout.</p>
+        </div>
+      </section>
+
+      <!-- Section 4: Operating the POS -->
+      <section class="card page-break">
+        <h2>
+          <span class="step-number">4</span>
+          Operating the POS Terminal
+        </h2>
+        <p>The POS terminal is built for speed and precision. Cashiers can complete sales in seconds.</p>
+
+        <h3>Step 4.1: Open Cash Register</h3>
+        <p>Before making any sales, you must open the register session:</p>
+        <ol>
+          <li>Go to <strong>Cash Register</strong>.</li>
+          <li>Input the **Opening Cash** amount currently in the drawer.</li>
+          <li>Click **Open Session**.</li>
+        </ol>
+
+        <h3>Step 4.2: Creating a Checkout Ticket</h3>
+        <ol>
+          <li>Navigate to the **POS** screen on the sidebar.</li>
+          <li>Select the Customer (defaults to <strong>Walk-in Customer</strong>).</li>
+          <li>Select medicines: Either scan the barcode or type the product name in the search bar.</li>
+          <li>The cart will populate. Select the quantity.
+            <ul>
+              <li><i>Note: The system blocks transactions that exceed available physical stock.</i></li>
+            </ul>
+          </li>
+          <li>Select the payment method: **Cash**, **Card**, or **Credit** (Credit is only allowed for registered farmers/dealers, not walk-ins).</li>
+          <li>Click **Process Payment**.</li>
+        </ol>
+
+        <h3>Step 4.3: Close Register at End of Shift</h3>
+        <ol>
+          <li>Go to <strong>Cash Register</strong>.</li>
+          <li>Count your cash in the physical drawer and input it in **Actual Closing Cash**.</li>
+          <li>The system calculates differences or discrepancies, logs them, and closes the session.</li>
+        </ol>
+      </section>
+
+      <!-- Section 5: Roles Summary -->
+      <section class="card page-break">
+        <h2>
+          <span class="step-number">5</span>
+          Employee Access Roles
+        </h2>
+        <p>The system uses strict roles to limit exposure to financial records and administrative changes:</p>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+          <thead>
+            <tr style="background-color: var(--primary-color); color: white; text-align: left;">
+              <th style="padding: 0.75rem;">Role</th>
+              <th style="padding: 0.75rem;">Permissions</th>
+              <th style="padding: 0.75rem;">Restrictions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 0.75rem;"><strong>OWNER</strong></td>
+              <td style="padding: 0.75rem;">Full system control, reports, settings, delete permissions.</td>
+              <td style="padding: 0.75rem;">None.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 0.75rem;"><strong>MANAGER</strong></td>
+              <td style="padding: 0.75rem;">Manage products, log purchases, view registers, process returns.</td>
+              <td style="padding: 0.75rem;">Cannot change system settings or modify user profile roles.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 0.75rem;"><strong>INVENTORY</strong></td>
+              <td style="padding: 0.75rem;">View catalog, record purchases, adjust stock, manage batches.</td>
+              <td style="padding: 0.75rem;">Cannot view cash registers, margins, profits, or sales reports.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 0.75rem;"><strong>CASHIER</strong></td>
+              <td style="padding: 0.75rem;">Run the POS, create bills, close registers, search items.</td>
+              <td style="padding: 0.75rem;">Cannot void transactions, modify historical stock, or view costs.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

@@ -238,13 +238,44 @@ export async function createProduct(values: ProductFormValues) {
     return { error: result.error.issues[0].message }
   }
 
+  const {
+    supplier_id,
+    initial_quantity,
+    batch_number,
+    expiry_date,
+    ...dbProductValues
+  } = values
+
   try {
     const supabase = await createClient()
 
     // Get currently authenticated user to set created_by
     const { data: { user } } = await supabase.auth.getUser()
+
+    // Resolve defaults if values are not provided
+    let catId = dbProductValues.category_id
+    if (!catId || catId.trim() === "") {
+      const { data: cat } = await supabase.from("categories").select("id").limit(1).maybeSingle()
+      catId = cat?.id || null
+    }
+
+    let brId = dbProductValues.brand_id
+    if (!brId || brId.trim() === "") {
+      const { data: brand } = await supabase.from("brands").select("id").limit(1).maybeSingle()
+      brId = brand?.id || null
+    }
+
+    let unId = dbProductValues.unit_id
+    if (!unId || unId.trim() === "") {
+      const { data: unit } = await supabase.from("units").select("id").limit(1).maybeSingle()
+      unId = unit?.id || null
+    }
+
     const productData = {
-      ...values,
+      ...dbProductValues,
+      category_id: catId,
+      brand_id: brId,
+      unit_id: unId,
       created_by: user?.id || null,
     }
 
@@ -255,6 +286,50 @@ export async function createProduct(values: ProductFormValues) {
       .single()
 
     if (error) throw error
+
+    // Create stock batch and inventory movement if initial quantity is set
+    if (initial_quantity && initial_quantity > 0) {
+      const defaultExpiry = new Date()
+      defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 2) // 2 years default
+
+      const { data: batchData, error: batchError } = await supabase
+        .from("product_batches")
+        .insert({
+          product_id: data.id,
+          batch_number: batch_number || `BAT-${Math.floor(100000 + Math.random() * 900000)}`,
+          manufacturing_date: new Date().toISOString().split("T")[0],
+          expiry_date: expiry_date || defaultExpiry.toISOString().split("T")[0],
+          initial_quantity: initial_quantity,
+          available_quantity: initial_quantity,
+          unit_cost: dbProductValues.purchase_price_reference || 0,
+          supplier_id: supplier_id || null,
+          status: "ACTIVE"
+        })
+        .select()
+        .single()
+
+      if (batchError) {
+        console.error("Failed to create initial stock batch:", batchError.message)
+      } else if (batchData) {
+        // Log inventory movement (positive stock in)
+        const { error: moveError } = await supabase
+          .from("inventory_movements")
+          .insert({
+            product_id: data.id,
+            batch_id: batchData.id,
+            movement_type: "OPENING_STOCK",
+            quantity: initial_quantity,
+            unit_cost: dbProductValues.purchase_price_reference || 0,
+            reference_type: "MANUAL",
+            notes: "Initial stock setup on product creation",
+            created_by: user?.id || null
+          })
+        if (moveError) {
+          console.error("Failed to log inventory movement:", moveError.message)
+        }
+      }
+    }
+
     revalidatePath("/products")
     return { success: true, data }
   } catch (err: any) {
