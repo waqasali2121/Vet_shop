@@ -44,10 +44,15 @@ export async function createCustomer(values: CustomerFormValues) {
   try {
     const supabase = await createClient()
 
-    // current balance defaults to opening balance
+    // Build payload without opening_balance column
     const customerData = {
-      ...values,
-      current_balance: values.opening_balance,
+      name: values.name,
+      phone: values.phone,
+      customer_type: values.customer_type,
+      credit_limit: values.credit_limit,
+      address: values.address || "",
+      is_active: values.is_active,
+      current_balance: values.opening_balance || 0,
     }
 
     const { data, error } = await supabase
@@ -88,24 +93,15 @@ export async function updateCustomer(id: string, values: CustomerFormValues) {
   try {
     const supabase = await createClient()
 
-    // Fetch current customer details
-    const { data: currentCustomer, error: fetchError } = await supabase
-      .from("customers")
-      .select("current_balance, opening_balance")
-      .eq("id", id)
-      .single()
-
-    if (fetchError) throw fetchError
-
-    // Adjust current balance if opening balance changes
-    const balDiff = values.opening_balance - currentCustomer.opening_balance
-    const newBalance = currentCustomer.current_balance + balDiff
-
     const { data, error } = await supabase
       .from("customers")
       .update({
-        ...values,
-        current_balance: newBalance,
+        name: values.name,
+        phone: values.phone,
+        customer_type: values.customer_type,
+        address: values.address || "",
+        is_active: values.is_active,
+        credit_limit: values.credit_limit,
       })
       .eq("id", id)
       .select()

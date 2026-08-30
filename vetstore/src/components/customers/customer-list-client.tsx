@@ -337,32 +337,6 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
                   className="border-slate-200"
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="credit_limit" className="text-slate-700">Credit Limit (PKR) *</Label>
-                  <Input
-                    id="credit_limit"
-                    type="number"
-                    {...register("credit_limit")}
-                    disabled={isPending}
-                    className="border-slate-200"
-                  />
-                </div>
-                {!editingCustomer && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="opening_balance" className="text-slate-700">Opening Balance (Rs.)</Label>
-                    <Input
-                      id="opening_balance"
-                      type="number"
-                      placeholder="e.g. 5000 if they owe money"
-                      {...register("opening_balance")}
-                      disabled={isPending}
-                      className="border-slate-200"
-                    />
-                  </div>
-                )}
-              </div>
             </div>
 
             <DialogFooter>

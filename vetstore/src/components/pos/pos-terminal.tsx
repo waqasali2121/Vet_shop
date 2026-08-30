@@ -18,6 +18,7 @@ import {
   Minus,
   Trash2,
   UserPlus,
+  Edit,
   Loader2,
   Printer,
   Barcode
@@ -107,6 +108,50 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
   const [custType, setCustType] = useState<any>("WALK_IN")
   const [custLimit, setCustLimit] = useState("50000")
   const [creatingCust, setCreatingCust] = useState(false)
+
+  // Edit Customer State
+  const [editCustomerModalOpen, setEditCustomerModalOpen] = useState(false)
+  const [editCustName, setEditCustName] = useState("")
+  const [editCustPhone, setEditCustPhone] = useState("")
+  const [updatingCust, setUpdatingCust] = useState(false)
+
+  const handleOpenEditCustomer = () => {
+    if (selectedCustomerId === "00000000-0000-0000-0000-000000000000" || !selectedCustomer) return
+    setEditCustName(selectedCustomer.name)
+    setEditCustPhone(selectedCustomer.phone)
+    setEditCustomerModalOpen(true)
+  }
+
+  const handleUpdateCustomerDetails = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editCustName.trim() || !editCustPhone.trim()) return
+
+    setUpdatingCust(true)
+    startTransition(async () => {
+      // Import the update action on-demand or use it since it's already imported?
+      // Wait, is updateCustomer imported at the top of pos-terminal.tsx?
+      // Let's check imports. Only createCustomer is imported. We need to import updateCustomer!
+      setError(null)
+      const { updateCustomer } = await import("@/lib/actions/customers")
+      const res = await updateCustomer(selectedCustomerId, {
+        name: editCustName,
+        phone: editCustPhone,
+        customer_type: selectedCustomer?.customer_type || "FARMER",
+        credit_limit: selectedCustomer?.credit_limit || 50000,
+        opening_balance: 0,
+        address: "",
+        is_active: true
+      })
+
+      if (res.error) {
+        setError(res.error)
+      } else if (res.data) {
+        setEditCustomerModalOpen(false)
+        router.refresh()
+      }
+      setUpdatingCust(false)
+    })
+  }
 
   // Focus ref for barcode scanner input autofocus
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -255,7 +300,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
         name: custName,
         phone: custPhone,
         customer_type: custType,
-        credit_limit: Number(custLimit),
+        credit_limit: 50000,
         opening_balance: 0,
         address: "",
         is_active: true
@@ -426,7 +471,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
               </div>
 
               {/* Customer Selector */}
-              <div className="flex items-center gap-2 sm:col-span-2">
+              <div className="flex items-center gap-1.5 sm:col-span-2">
                 <div className="relative flex-1">
                   <select
                     id="cust_select_search"
@@ -441,6 +486,17 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                     ))}
                   </select>
                 </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  disabled={selectedCustomerId === "00000000-0000-0000-0000-000000000000"}
+                  onClick={handleOpenEditCustomer}
+                  className="h-9 w-9 text-slate-650 border-slate-200 cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Edit Customer"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -661,7 +717,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
 
             {/* Customer selector & info */}
             <div className="p-4 space-y-4 bg-slate-50/20">
-              <div className="flex items-end gap-2">
+              <div className="flex items-end gap-1.5">
                 <div className="grid gap-1.5 flex-1">
                   <Label htmlFor="cust_select" className="text-xs text-slate-600 font-semibold">Select Customer</Label>
                   <select
@@ -681,11 +737,23 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                   type="button"
                   variant="outline"
                   size="icon"
+                  disabled={selectedCustomerId === "00000000-0000-0000-0000-000000000000"}
+                  onClick={handleOpenEditCustomer}
+                  className="h-9 w-9 text-slate-600 border-slate-200 cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Edit Customer"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
                   onClick={() => setCustomerModalOpen(true)}
-                  className="h-9 w-9 text-slate-600 border-slate-200 cursor-pointer"
+                  className="h-9 w-9 text-slate-600 border-slate-200 cursor-pointer shrink-0"
                   title="Add New Customer"
                 >
                   <UserPlus className="h-4 w-4" />
+                </Button>
                 </Button>
               </div>
 
@@ -972,16 +1040,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                   <option value="OTHER">Other</option>
                 </select>
               </div>
-              <div className="grid gap-1">
-                <Label htmlFor="custLimit" className="text-xs text-slate-650">Udhaar Credit Limit (Rs.)</Label>
-                <Input
-                  id="custLimit"
-                  type="number"
-                  placeholder="e.g. 50000"
-                  value={custLimit}
-                  onChange={(e) => setCustLimit(e.target.value)}
-                />
-              </div>
+              {/* Removed Udhaar Credit Limit Input */}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setCustomerModalOpen(false)}>
@@ -989,6 +1048,52 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
               </Button>
               <Button type="submit" disabled={creatingCust}>
                 {creatingCust ? "Creating..." : "Save Customer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Customer Details Dialog */}
+      <Dialog open={editCustomerModalOpen} onOpenChange={setEditCustomerModalOpen}>
+        <DialogContent className="max-w-sm">
+          <form onSubmit={handleUpdateCustomerDetails}>
+            <DialogHeader>
+              <DialogTitle className="font-bold text-slate-900">Edit Customer Details</DialogTitle>
+              <DialogDescription className="text-slate-500">
+                Update customer's name and phone number on the fly.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-3 py-3">
+              <div className="grid gap-1">
+                <Label htmlFor="editCustName" className="text-xs text-slate-650">Customer Name *</Label>
+                <Input
+                  id="editCustName"
+                  placeholder="e.g. Haji Muhammad Ali"
+                  value={editCustName}
+                  onChange={(e) => setEditCustName(e.target.value)}
+                  required
+                  disabled={updatingCust}
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="editCustPhone" className="text-xs text-slate-650">Phone Number *</Label>
+                <Input
+                  id="editCustPhone"
+                  placeholder="e.g. 0300-9876543"
+                  value={editCustPhone}
+                  onChange={(e) => setEditCustPhone(e.target.value)}
+                  required
+                  disabled={updatingCust}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditCustomerModalOpen(false)} disabled={updatingCust}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updatingCust} className="font-semibold shadow-sm cursor-pointer">
+                {updatingCust ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </form>
