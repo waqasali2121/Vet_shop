@@ -77,10 +77,10 @@ export default async function POSPage({ searchParams }: PageProps) {
   }))
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col flex-1 min-h-0 space-y-3 h-full">
       {/* Alert if register is closed */}
       {!activeSession && (
-        <div className="rounded-md bg-destructive/10 p-3.5 text-sm text-destructive font-black border border-destructive/20 flex justify-between items-center">
+        <div className="rounded-md bg-destructive/10 p-3.5 text-sm text-destructive font-black border border-destructive/20 flex justify-between items-center shrink-0">
           <span>⚠️ CASH REGISTER IS CLOSED. You must open a register session before checking out sales.</span>
           <a href="/cash-register" className="underline font-bold hover:text-destructive/80">
             Open Register Now &rarr;

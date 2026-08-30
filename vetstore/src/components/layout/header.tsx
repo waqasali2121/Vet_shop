@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { User, LogOut, Settings, Play, CheckCircle, Menu } from "lucide-react"
+import { User, LogOut, Settings, CheckCircle, Menu } from "lucide-react"
 
 interface HeaderProps {
   onToggleSidebar: () => void
@@ -64,19 +64,14 @@ export function Header({
       {/* Cash Register Status & User Menu */}
       <div className="flex items-center gap-4">
         {/* Register Status Indicator */}
-        <div className="flex items-center gap-2">
-          {registerSession ? (
+        {registerSession && (
+          <div className="flex items-center gap-2">
             <Badge variant="success" className="flex items-center gap-1 py-1 px-2.5 text-xs font-semibold">
               <CheckCircle className="h-3 w-3" />
               <span>Register Active</span>
             </Badge>
-          ) : (
-            <Badge variant="destructive" className="flex items-center gap-1 py-1 px-2.5 text-xs font-semibold">
-              <Play className="h-3 w-3" />
-              <span>Register Closed</span>
-            </Badge>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* User Account Dropdown */}
         <DropdownMenu>

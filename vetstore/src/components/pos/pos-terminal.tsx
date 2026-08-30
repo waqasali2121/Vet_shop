@@ -356,7 +356,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
   }
 
   return (
-    <div className="grid gap-6 grid-cols-1 md:grid-cols-5 h-auto md:h-[calc(100vh-8.5rem)] overflow-y-auto md:overflow-hidden pr-1">
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-5 flex-1 min-h-0 md:h-full md:overflow-hidden pr-1">
       {/* LEFT COLUMN: Product Catalog & Search (3/5 width) */}
       <div className="col-span-1 md:col-span-3 flex flex-col h-auto md:h-full space-y-4">
         {/* Search Header */}
@@ -409,7 +409,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                       onClick={() => handleAddToCart(product)}
                       disabled={outOfStock}
                       className={`flex flex-col text-left p-3 border rounded-lg hover:border-primary hover:bg-slate-50/50 transition-all cursor-pointer relative w-full ${
-                        outOfStock ? "opacity-60 bg-slate-55 border-slate-200" : "border-slate-200"
+                        outOfStock ? "opacity-60 bg-slate-50 border-slate-200" : "border-slate-200"
                       }`}
                     >
                       <div className="font-bold text-slate-800 text-xs line-clamp-2 min-h-[2rem]">
@@ -569,7 +569,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                 <div className="bg-slate-50 border border-slate-200/60 rounded p-2.5 text-xs space-y-1.5 font-semibold">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Current Ledger Udhaar</span>
-                    <span className="text-red-650 font-bold">Rs. {Number(selectedCustomer.current_balance).toLocaleString()}</span>
+                    <span className="text-red-600 font-bold">Rs. {Number(selectedCustomer.current_balance).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Allowed Credit Limit</span>
@@ -583,7 +583,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                 <div className="bg-slate-50 border border-slate-200/60 rounded p-2.5 text-xs space-y-2">
                   <span className="text-slate-500 font-bold uppercase tracking-wider block border-b border-slate-200 pb-1 text-[9px]">Past Purchase History</span>
                   {loadingHistory ? (
-                    <div className="flex items-center gap-1.5 py-1 text-slate-455">
+                    <div className="flex items-center gap-1.5 py-1 text-slate-500">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       <span>Loading past bills...</span>
                     </div>
@@ -687,7 +687,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
             </div>
             <div className="flex justify-between text-slate-500">
               <span>Discount (-)</span>
-              <span className="text-red-650">Rs. {discountTotal.toLocaleString()}</span>
+              <span className="text-red-600">Rs. {discountTotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-slate-800 font-bold text-sm border-t border-slate-100 pt-2">
               <span>Grand Total</span>
@@ -708,7 +708,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
               </div>
             )}
             {balanceDue > 0 && (
-              <div className="flex justify-between text-red-650 font-bold">
+              <div className="flex justify-between text-red-600 font-bold">
                 <span>Unpaid Balance (Credit/Udhaar)</span>
                 <span>Rs. {balanceDue.toLocaleString()}</span>
               </div>
