@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSaleReceiptData } from "@/lib/actions/sales"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -15,6 +16,17 @@ export async function GET(request: NextRequest) {
   }
 
   const sale = res.data as any
+  const supabase = await createClient()
+
+  // Fetch store settings for dynamically custom name, phone, address
+  const { data: storeSettings } = await supabase
+    .from("store_settings")
+    .select("store_name, phone, address")
+    .maybeSingle()
+
+  const storeName = storeSettings?.store_name || "SALMAN FARSY VET STORE"
+  const storePhone = storeSettings?.phone || "03148020942"
+  const storeAddress = storeSettings?.address || "opposite Masjid Pakistan Gujrat Bakshahali"
 
   // Formatting helper for currency
   const formatCurrency = (val: number) => `Rs. ${Number(val).toLocaleString()}`
@@ -154,8 +166,8 @@ export async function GET(request: NextRequest) {
 
       <div class="text-center header">
         <img src="/logo.jpeg" alt="Logo" class="logo" />
-        <div class="store-name">SALMAN FARSY VET STORE</div>
-        <div class="store-address">Opposite Grain Market, Veterinary Hospital Road<br>Phone: 0300-1234567</div>
+        <div class="store-name">${storeName}</div>
+        <div class="store-address">${storeAddress}<br>Mobile No. ${storePhone}</div>
         <div class="receipt-title">Retail Invoice</div>
       </div>
 
@@ -251,7 +263,7 @@ export async function GET(request: NextRequest) {
       <div class="text-center footer">
         <span class="bold" style="color: #000;">Thank You For Your Business!</span><br>
         Software Generated Retail Bill.<br>
-        For inquiries, call 0300-1234567
+        For inquiries, call ${storePhone}
       </div>
 
       <script>

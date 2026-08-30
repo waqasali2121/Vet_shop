@@ -408,18 +408,49 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
         {/* Search Header */}
         <Card className="border-slate-200/80 shadow-sm shrink-0">
           <CardContent className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <Input
-                ref={searchInputRef}
-                placeholder="Scan Barcode or Search by Name, Generic Formula, SKU..."
-                className="pl-9 border-slate-200 focus-visible:ring-primary/20"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <div className="absolute right-3 top-2.5 text-xs text-slate-400 font-semibold flex items-center gap-1 bg-slate-100 rounded px-1.5 py-0.5">
-                <Barcode className="h-3.5 w-3.5 text-slate-500" />
-                <span>Scanner Active</span>
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+              {/* Product Search */}
+              <div className="relative sm:col-span-3">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  ref={searchInputRef}
+                  placeholder="Scan Barcode or Search by Name, Generic Formula, SKU..."
+                  className="pl-9 border-slate-200 focus-visible:ring-primary/20 h-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <div className="absolute right-3 top-2 text-[10px] text-slate-400 font-semibold flex items-center gap-1 bg-slate-100 rounded px-1.5 py-0.5">
+                  <Barcode className="h-3.5 w-3.5 text-slate-500" />
+                  <span>Scanner Active</span>
+                </div>
+              </div>
+
+              {/* Customer Selector */}
+              <div className="flex items-center gap-2 sm:col-span-2">
+                <div className="relative flex-1">
+                  <select
+                    id="cust_select_search"
+                    value={selectedCustomerId}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none"
+                  >
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.phone})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCustomerModalOpen(true)}
+                  className="h-9 w-9 text-slate-650 border-slate-200 cursor-pointer shrink-0"
+                  title="Add New Customer"
+                >
+                  <UserPlus className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </CardContent>
