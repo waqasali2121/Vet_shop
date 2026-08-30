@@ -188,9 +188,10 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
 
   const handleUpdatePrice = (index: number, price: number) => {
     setError(null)
-    const minPrice = cart[index].product.minimum_sale_price
-    if (price < minPrice) {
-      setError(`Cannot sell below minimum price of Rs. ${minPrice}`)
+    const item = cart[index]
+    const minPrice = item.product.minimum_sale_price
+    if (price - item.discount_amount < minPrice) {
+      setError(`Net price cannot drop below minimum price of Rs. ${minPrice}. Reduce discount or increase price.`)
       return
     }
     const newCart = [...cart]
@@ -201,6 +202,12 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
   const handleUpdateDiscount = (index: number, discount: number) => {
     setError(null)
     if (discount < 0) return
+    const item = cart[index]
+    const minPrice = item.product.minimum_sale_price
+    if (item.unit_price - discount < minPrice) {
+      setError(`Cannot discount below minimum price of Rs. ${minPrice}. Max discount allowed: Rs. ${item.unit_price - minPrice}`)
+      return
+    }
     const newCart = [...cart]
     newCart[index].discount_amount = discount
     setCart(newCart)
@@ -422,8 +429,15 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                         <span className="font-black text-sm text-slate-900">
                           Rs. {product.retail_price.toLocaleString()}
                         </span>
-                        <span className={`text-[10px] font-bold ${outOfStock ? "text-red-500" : "text-slate-500"}`}>
-                          Stock: {product.total_stock} {product.unit?.abbreviation || "vials"}
+                        <span className={`text-[10px] font-bold ${
+                          outOfStock
+                            ? "text-red-600 line-through"
+                            : product.total_stock < 10
+                              ? "text-amber-600"
+                              : "text-slate-500"
+                        }`}>
+                          {outOfStock ? "Out of Stock" : `Stock: ${product.total_stock} ${product.unit?.abbreviation || "vials"}`}
+                          {product.total_stock > 0 && product.total_stock < 10 && " (Low)"}
                         </span>
                       </div>
                     </button>
@@ -476,22 +490,55 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
 
                     <div className="flex items-center justify-between gap-4">
                       {/* Qty Modifiers */}
-                      <div className="flex items-center border border-slate-200 rounded">
+                      <div className="flex items-center border border-slate-200 rounded overflow-hidden">
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 rounded-none hover:bg-slate-100"
+                          className="h-7 w-7 rounded-none hover:bg-slate-100 shrink-0"
                           onClick={() => handleUpdateQty(idx, -1)}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="px-3 text-xs font-bold text-slate-800">{item.quantity}</span>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={item.product.total_stock}
+                          value={item.quantity === 0 ? "" : item.quantity}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10)
+                            if (isNaN(val) || val <= 0) {
+                              const newCart = [...cart]
+                              newCart[idx].quantity = 0 // temp empty value while typing
+                              setCart(newCart)
+                              return
+                            }
+                            if (val > item.product.total_stock) {
+                              setError(`Insufficient stock. Only ${item.product.total_stock} units available.`)
+                              const newCart = [...cart]
+                              newCart[idx].quantity = item.product.total_stock
+                              setCart(newCart)
+                              return
+                            }
+                            setError(null)
+                            const newCart = [...cart]
+                            newCart[idx].quantity = val
+                            setCart(newCart)
+                          }}
+                          onBlur={() => {
+                            if (item.quantity <= 0) {
+                              const newCart = [...cart]
+                              newCart[idx].quantity = 1
+                              setCart(newCart)
+                            }
+                          }}
+                          className="h-7 w-10 text-center text-xs font-bold border-0 border-x border-slate-200 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shrink-0"
+                        />
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 rounded-none hover:bg-slate-100"
+                          className="h-7 w-7 rounded-none hover:bg-slate-100 shrink-0"
                           onClick={() => handleUpdateQty(idx, 1)}
                         >
                           <Plus className="h-3 w-3" />
@@ -575,6 +622,18 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                     <span className="text-slate-400">Allowed Credit Limit</span>
                     <span className="text-slate-700 font-bold">Rs. {Number(selectedCustomer.credit_limit).toLocaleString()}</span>
                   </div>
+                  <div className="flex justify-between border-t border-slate-200/60 pt-1.5 mt-1.5">
+                    <span className="text-slate-500 font-bold">Remaining Credit Limit</span>
+                    <span className={`font-black ${
+                      (selectedCustomer.credit_limit - selectedCustomer.current_balance) <= 0
+                        ? "text-red-600"
+                        : (selectedCustomer.credit_limit - selectedCustomer.current_balance) < grandTotal
+                          ? "text-amber-600"
+                          : "text-emerald-600"
+                    }`}>
+                      Rs. {(selectedCustomer.credit_limit - selectedCustomer.current_balance).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               )}
 
@@ -619,16 +678,50 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
             {/* Payments & Discount Percent */}
             <div className="p-4 space-y-4 bg-slate-50/10">
               <Label className="text-xs text-slate-600 font-semibold block">Record Payments</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1.5 text-[10px] text-slate-400 font-bold font-mono">CASH</span>
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={paidCash}
-                    onChange={(e) => setPaidCash(e.target.value)}
-                    className="h-8 pl-12 text-xs border-slate-200 font-bold text-slate-800"
-                  />
+              <div className="grid grid-cols-2 gap-2 items-start">
+                <div className="flex flex-col gap-1">
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1.5 text-[10px] text-slate-400 font-bold font-mono">CASH</span>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={paidCash}
+                      onChange={(e) => setPaidCash(e.target.value)}
+                      className="h-8 pl-12 text-xs border-slate-200 font-bold text-slate-800"
+                    />
+                  </div>
+                  {/* Quick Cash Buttons */}
+                  <div className="flex flex-wrap gap-1 px-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaidCash(String(grandTotal))}
+                      className="text-[9px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-1 py-0.5 rounded cursor-pointer transition-colors"
+                      title="Exact amount"
+                    >
+                      Exact
+                    </button>
+                    {[100, 500, 1000, 5000].map((note) => (
+                      <button
+                        type="button"
+                        key={note}
+                        onClick={() => {
+                          const current = Number(paidCash) || 0
+                          setPaidCash(String(current + note))
+                        }}
+                        className="text-[9px] font-semibold text-slate-650 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer transition-colors"
+                      >
+                        +{note}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setPaidCash("")}
+                      className="text-[9px] font-bold text-red-500 bg-red-50 hover:bg-red-100 px-1 py-0.5 rounded cursor-pointer transition-colors"
+                      title="Clear"
+                    >
+                      C
+                    </button>
+                  </div>
                 </div>
                 <div className="relative">
                   <span className="absolute left-2.5 top-1.5 text-[10px] text-slate-400 font-bold font-mono">E-PAISA</span>
