@@ -318,7 +318,7 @@ export async function getSaleReceiptData(id: string) {
       .select(`
         *,
         customer:customers(id, name, phone, customer_type, current_balance),
-        cashier:profiles(email, first_name, last_name),
+        cashier:profiles!cashier_id(email, first_name, last_name),
         items:sale_items(
           *,
           product:products(name, sku, barcode, unit:units(abbreviation))
@@ -361,7 +361,7 @@ export async function getSaleById(id: string) {
       .select(`
         *,
         customer:customers(id, name, phone, customer_type, current_balance, credit_limit),
-        cashier:profiles(email, first_name, last_name),
+        cashier:profiles!cashier_id(email, first_name, last_name),
         items:sale_items(
           *,
           product:products(id, name, sku, unit:units(abbreviation)),

@@ -32,12 +32,12 @@ export async function GET(request: NextRequest) {
           margin: 0;
         }
         body {
-          font-family: 'Courier New', Courier, monospace;
-          font-size: 12px;
-          line-height: 1.4;
-          width: 76mm;
+          font-family: system-ui, -apple-system, sans-serif;
+          font-size: 11px;
+          line-height: 1.5;
+          width: 74mm;
           margin: 2mm auto;
-          color: #000;
+          color: #0f172a;
         }
         .text-center {
           text-align: center;
@@ -46,49 +46,93 @@ export async function GET(request: NextRequest) {
           text-align: right;
         }
         .bold {
-          font-weight: bold;
+          font-weight: 700;
+        }
+        .black {
+          font-weight: 800;
+          color: #000;
         }
         .header {
-          margin-bottom: 8px;
+          margin-bottom: 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+        .logo {
+          height: 52px;
+          width: 52px;
+          border-radius: 50%;
+          object-fit: cover;
+          margin-bottom: 6px;
+          border: 1.5px solid #0f172a;
         }
         .store-name {
           font-size: 14px;
-          font-weight: bold;
-          margin-bottom: 2px;
+          font-weight: 800;
+          color: #000;
+          letter-spacing: 0.25px;
+          text-transform: uppercase;
         }
         .store-address {
+          font-size: 9.5px;
+          color: #475569;
+          font-weight: 500;
+          margin-top: 2px;
+        }
+        .receipt-title {
           font-size: 10px;
-          margin-bottom: 4px;
+          font-weight: 700;
+          background: #f1f5f9;
+          border: 1px solid #cbd5e1;
+          color: #1e293b;
+          padding: 2px 10px;
+          border-radius: 9999px;
+          margin-top: 6px;
+          text-transform: uppercase;
         }
         .separator {
-          border-top: 1px dashed #000;
-          margin: 6px 0;
+          border-top: 1.5px dashed #475569;
+          margin: 8px 0;
         }
         .meta-table, .items-table, .totals-table {
           width: 100%;
           border-collapse: collapse;
         }
         .meta-table td, .totals-table td {
-          font-size: 11px;
-          padding: 1px 0;
+          font-size: 10px;
+          padding: 2.5px 0;
+          color: #1e293b;
         }
         .items-table th {
-          border-bottom: 1px dashed #000;
-          font-size: 11px;
-          font-weight: bold;
-          padding: 2px 0;
+          border-bottom: 1.5px solid #0f172a;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 4px 0;
+          color: #000;
+          text-transform: uppercase;
         }
         .items-table td {
-          font-size: 11px;
-          padding: 3px 0;
+          font-size: 10px;
+          padding: 5px 0;
           vertical-align: top;
+          color: #1e293b;
         }
         .item-row {
-          border-bottom: 1px dotted #ccc;
+          border-bottom: 1px dotted #cbd5e1;
+        }
+        .totals-table tr.grand-total-row {
+          border-top: 1.5px dashed #475569;
+          border-bottom: 1.5px dashed #475569;
+          font-weight: 800;
+          font-size: 12px;
+          color: #000;
         }
         .footer {
-          margin-top: 15px;
-          font-size: 10px;
+          margin-top: 18px;
+          font-size: 9.5px;
+          color: #475569;
+          font-weight: 500;
         }
         @media print {
           body {
@@ -102,16 +146,17 @@ export async function GET(request: NextRequest) {
       </style>
     </head>
     <body>
-      <div class="no-print" style="padding: 10px; text-align: center; background: #f3f4f6; margin-bottom: 10px; border-radius: 4px;">
-        <button onclick="window.print()" style="padding: 6px 12px; font-weight: bold; background: #047857; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      <div class="no-print" style="padding: 10px; text-align: center; background: #f8fafc; margin-bottom: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+        <button onclick="window.print()" style="padding: 6px 14px; font-weight: 700; font-size: 11px; background: #059669; color: white; border: none; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
           Print Receipt
         </button>
       </div>
 
       <div class="text-center header">
+        <img src="/logo.jpeg" alt="Logo" class="logo" />
         <div class="store-name">SALMAN FARSY VET STORE</div>
         <div class="store-address">Opposite Grain Market, Veterinary Hospital Road<br>Phone: 0300-1234567</div>
-        <div class="bold">POS RETAIL RECEIPT</div>
+        <div class="receipt-title">Retail Invoice</div>
       </div>
 
       <div class="separator"></div>
@@ -119,7 +164,7 @@ export async function GET(request: NextRequest) {
       <table class="meta-table">
         <tr>
           <td><span class="bold">Invoice #:</span></td>
-          <td class="text-right">${sale.invoice_number}</td>
+          <td class="text-right font-bold" style="color: #000;">${sale.invoice_number}</td>
         </tr>
         <tr>
           <td><span class="bold">Date:</span></td>
@@ -127,11 +172,11 @@ export async function GET(request: NextRequest) {
         </tr>
         <tr>
           <td><span class="bold">Cashier:</span></td>
-          <td class="text-right">${sale.cashier?.first_name || sale.cashier?.email.split("@")[0]}</td>
+          <td class="text-right" style="text-transform: capitalize;">${sale.cashier?.first_name || sale.cashier?.email.split("@")[0]}</td>
         </tr>
         <tr>
           <td><span class="bold">Customer:</span></td>
-          <td class="text-right">${sale.customer?.name}</td>
+          <td class="text-right font-bold">${sale.customer?.name}</td>
         </tr>
       </table>
 
@@ -140,22 +185,23 @@ export async function GET(request: NextRequest) {
       <table class="items-table">
         <thead>
           <tr>
-            <th style="text-align: left;">Item Description</th>
+            <th style="text-align: left; width: 50%;">Item Description</th>
             <th class="text-center" style="width: 15%;">Qty</th>
-            <th class="text-right" style="width: 25%;">Price</th>
-            <th class="text-right" style="width: 25%;">Total</th>
+            <th class="text-right" style="width: 35%;">Total</th>
           </tr>
         </thead>
         <tbody>
           ${sale.items.map((item: any) => `
             <tr class="item-row">
-              <td style="text-align: left;">
-                ${item.product?.name}
-                ${item.discount_amount > 0 ? `<br><span style="font-size:9px;color:#555;">(Disc: -${formatCurrency(item.discount_amount)})</span>` : ""}
+              <td style="text-align: left; padding: 5px 0;">
+                <div class="bold" style="color: #0f172a; font-size: 10px;">${item.product?.name}</div>
+                <div style="font-size: 9px; color: #64748b; font-weight: 500;">
+                  Price: Rs. ${Number(item.unit_price).toLocaleString()}
+                </div>
+                ${item.discount_amount > 0 ? `<div style="font-size: 8.5px; color: #dc2626; font-weight: 700;">(Disc: -Rs. ${Number(item.discount_amount).toLocaleString()})</div>` : ""}
               </td>
-              <td class="text-center">${item.quantity}</td>
-              <td class="text-right">${Number(item.unit_price).toLocaleString()}</td>
-              <td class="text-right">${Number(item.line_total).toLocaleString()}</td>
+              <td class="text-center" style="padding: 5px 0; font-weight: 600;">${item.quantity} ${item.product?.unit?.abbreviation || ""}</td>
+              <td class="text-right bold" style="padding: 5px 0; color: #000;">Rs. ${Number(item.line_total).toLocaleString()}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -166,36 +212,36 @@ export async function GET(request: NextRequest) {
       <table class="totals-table">
         <tr>
           <td>Subtotal:</td>
-          <td class="text-right">${formatCurrency(sale.subtotal)}</td>
+          <td class="text-right">Rs. ${Number(sale.subtotal).toLocaleString()}</td>
         </tr>
         ${sale.discount_amount > 0 ? `
         <tr>
-          <td>Discount (-):</td>
-          <td class="text-right">${formatCurrency(sale.discount_amount)}</td>
+          <td style="color: #dc2626; font-weight: 600;">Discount (-):</td>
+          <td class="text-right font-semibold" style="color: #dc2626;">Rs. ${Number(sale.discount_amount).toLocaleString()}</td>
         </tr>
         ` : ""}
-        <tr class="bold">
-          <td>Grand Total:</td>
-          <td class="text-right" style="font-size: 13px;">${formatCurrency(sale.grand_total)}</td>
+        <tr class="grand-total-row">
+          <td style="padding: 5px 0; font-size: 11.5px; font-weight: 800;">Grand Total:</td>
+          <td class="text-right" style="padding: 5px 0; font-size: 11.5px; font-weight: 800;">Rs. ${Number(sale.grand_total).toLocaleString()}</td>
         </tr>
         <tr>
           <td>Amount Paid:</td>
-          <td class="text-right">${formatCurrency(sale.paid_amount)}</td>
+          <td class="text-right">Rs. ${Number(sale.paid_amount).toLocaleString()}</td>
         </tr>
         <tr class="bold">
-          <td>Balance Due:</td>
-          <td class="text-right">${formatCurrency(sale.balance_amount)}</td>
+          <td style="color: ${sale.balance_amount > 0 ? '#dc2626' : '#1e293b'}">Balance Due:</td>
+          <td class="text-right" style="color: ${sale.balance_amount > 0 ? '#dc2626' : '#1e293b'}">Rs. ${Number(sale.balance_amount).toLocaleString()}</td>
         </tr>
       </table>
 
       <div class="separator"></div>
 
-      <div class="bold" style="font-size: 10px;">Payment Breakdown:</div>
-      <table class="meta-table" style="margin-top: 2px;">
+      <div class="bold" style="font-size: 9.5px; color: #000; text-transform: uppercase;">Payment Breakdown:</div>
+      <table class="meta-table" style="margin-top: 3px;">
         ${sale.payments.map((p: any) => `
           <tr>
-            <td style="font-size:10px;">· ${p.payment_method}</td>
-            <td class="text-right" style="font-size:10px;">${formatCurrency(p.amount)}</td>
+            <td style="font-size: 9px; color: #475569; font-weight: 600;">· ${p.payment_method}</td>
+            <td class="text-right bold" style="font-size: 9px; color: #0f172a;">Rs. ${Number(p.amount).toLocaleString()}</td>
           </tr>
         `).join('')}
       </table>
@@ -203,8 +249,8 @@ export async function GET(request: NextRequest) {
       <div class="separator"></div>
 
       <div class="text-center footer">
-        <span class="bold">Thank You For Your Business!</span><br>
-        Software Generated Receipt.<br>
+        <span class="bold" style="color: #000;">Thank You For Your Business!</span><br>
+        Software Generated Retail Bill.<br>
         For inquiries, call 0300-1234567
       </div>
 

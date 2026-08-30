@@ -16,7 +16,7 @@ export async function lookupSaleByInvoice(invoiceNumber: string) {
       .select(`
         *,
         customer:customers(id, name, phone, current_balance, credit_limit),
-        cashier:profiles(email, first_name)
+        cashier:profiles!cashier_id(email, first_name)
       `)
       .ilike("invoice_number", invoiceNumber.trim())
       .maybeSingle()
