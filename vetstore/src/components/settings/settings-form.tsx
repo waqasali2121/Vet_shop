@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Loader2, Settings2 } from "lucide-react"
+import { Loader2, Settings2, KeyRound } from "lucide-react"
+import { changePassword } from "@/app/(auth)/auth-actions"
 
 interface SettingsFormProps {
   initialData?: StoreSettingsFormValues
@@ -23,6 +24,40 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // Password change state
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [pwPending, startPwTransition] = useTransition()
+  const [pwError, setPwError] = useState<string | null>(null)
+  const [pwSuccess, setPwSuccess] = useState<string | null>(null)
+
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault()
+    setPwError(null)
+    setPwSuccess(null)
+
+    if (!newPassword || newPassword.length < 6) {
+      setPwError("Password must be at least 6 characters long.")
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPwError("Passwords do not match.")
+      return
+    }
+
+    startPwTransition(async () => {
+      const res = await changePassword(newPassword, confirmPassword)
+      if (res.error) {
+        setPwError(res.error)
+      } else {
+        setPwSuccess("Your account password has been updated successfully.")
+        setNewPassword("")
+        setConfirmPassword("")
+      }
+    })
+  }
 
   const defaultValues: StoreSettingsFormValues = initialData
     ? {
@@ -90,15 +125,15 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
           <Settings2 className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Store Settings</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Settings</h1>
           <p className="text-sm text-slate-500 font-medium">
-            Configure invoice prefixes, POS printer receipt sizes, and FEFO inventory rules.
+            Manage your employee account credentials and configure global store settings.
           </p>
         </div>
       </div>
@@ -115,11 +150,80 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
         </div>
       )}
 
-      {!isOwner && (
-        <div className="rounded-md bg-amber-50 p-3.5 text-xs text-amber-700 font-black border border-amber-200">
-          ⚠️ READ-ONLY ACCESS: Only the OWNER account can modify store configurations.
-        </div>
-      )}
+      {/* 1. Account Settings Card (Available to All Roles) */}
+      <Card className="border-slate-200/80 shadow-sm">
+        <CardHeader className="pb-3 border-b border-slate-100">
+          <CardTitle className="font-bold text-slate-900 flex items-center gap-2">
+            <KeyRound className="h-4.5 w-4.5 text-slate-500" />
+            <span>My Account Password</span>
+          </CardTitle>
+          <CardDescription className="text-slate-500 text-xs font-semibold">
+            Change your account login password. Keep it secure.
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={handlePasswordChange}>
+          <CardContent className="grid gap-4 pt-4">
+            {pwError && (
+              <div className="rounded-md bg-destructive/10 p-2.5 text-xs text-destructive font-semibold border border-destructive/20">
+                {pwError}
+              </div>
+            )}
+            {pwSuccess && (
+              <div className="rounded-md bg-emerald-50 p-2.5 text-xs text-emerald-700 font-bold border border-emerald-200">
+                {pwSuccess}
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-1.5">
+                <Label htmlFor="new_password" className="text-slate-700 font-semibold text-xs">New Password *</Label>
+                <Input
+                  id="new_password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={pwPending}
+                  required
+                  placeholder="At least 6 characters"
+                  className="border-slate-200 focus-visible:ring-primary/20"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="confirm_password" className="text-slate-700 font-semibold text-xs">Confirm New Password *</Label>
+                <Input
+                  id="confirm_password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={pwPending}
+                  required
+                  placeholder="Repeat new password"
+                  className="border-slate-200 focus-visible:ring-primary/20"
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="pb-4 pt-2 border-t border-slate-100 mt-2 bg-slate-50/50 flex justify-end">
+            <Button type="submit" disabled={pwPending} className="font-semibold text-xs py-1.5 px-4 shadow-sm cursor-pointer">
+              {pwPending ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  Updating Password...
+                </>
+              ) : (
+                "Update Password"
+              )}
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+
+      {/* 2. Store Settings Form (Owner Only) */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {!isOwner && (
+          <div className="rounded-md bg-amber-50 p-3.5 text-xs text-amber-700 font-black border border-amber-200">
+            ⚠️ READ-ONLY ACCESS: Only the OWNER account can modify store configurations.
+          </div>
+        )}
 
       <Card className="border-slate-200/80 shadow-sm">
         <CardHeader className="pb-3 border-b border-slate-100">
@@ -275,5 +379,6 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
         )}
       </Card>
     </form>
+  </div>
   )
 }

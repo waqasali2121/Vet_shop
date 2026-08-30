@@ -1,8 +1,8 @@
 "use client"
 
-import * as React from "react"
 import { useTransition } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { logout } from "@/app/(auth)/auth-actions"
 import { Button } from "@/components/ui/button"
 import {
@@ -103,10 +103,12 @@ export function Header({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4 text-slate-500" />
-              <span>My Profile</span>
-            </DropdownMenuItem>
+            <Link href="/settings" className="w-full cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4 text-slate-500" />
+                <span>My Profile</span>
+              </DropdownMenuItem>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}

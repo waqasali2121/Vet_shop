@@ -34,6 +34,7 @@ export function UsersClient({ profiles, currentUserRole }: UsersClientProps) {
   const [editedProfiles, setEditedProfiles] = useState<Record<string, { role: Profile["role"]; is_active: boolean }>>({})
 
   const isOwner = currentUserRole === "OWNER"
+  const canManageUsers = currentUserRole === "OWNER" || currentUserRole === "MANAGER"
 
   const handleRoleChange = (id: string, role: Profile["role"]) => {
     setEditedProfiles(prev => ({
@@ -100,9 +101,9 @@ export function UsersClient({ profiles, currentUserRole }: UsersClientProps) {
         </div>
       )}
 
-      {!isOwner && (
+      {!canManageUsers && (
         <div className="rounded-md bg-amber-50 p-3.5 text-xs text-amber-700 font-black border border-amber-200">
-          ⚠️ READ-ONLY ACCESS: Only the OWNER account can modify employee roles or activate/deactivate accounts.
+          ⚠️ READ-ONLY ACCESS: Only Owners and Managers can modify employee roles or activate/deactivate accounts.
         </div>
       )}
 
@@ -123,7 +124,7 @@ export function UsersClient({ profiles, currentUserRole }: UsersClientProps) {
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Assigned Role</th>
                   <th className="px-6 py-3 text-center">Status</th>
-                  {isOwner && <th className="px-6 py-3 text-right pr-8">Actions</th>}
+                  {canManageUsers && <th className="px-6 py-3 text-right pr-8">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
@@ -132,6 +133,7 @@ export function UsersClient({ profiles, currentUserRole }: UsersClientProps) {
                   const currentStatus = editedProfiles[profile.id]?.is_active ?? profile.is_active
                   const isModified = editedProfiles[profile.id] !== undefined
                   const isSelf = profiles.find(p => p.id === profile.id)?.email === profile.email // disable self-deactivation
+                  const canEditThisProfile = canManageUsers && (profile.role !== "OWNER" || currentUserRole === "OWNER")
 
                   return (
                     <tr key={profile.id} className="hover:bg-slate-50/50 transition-colors">
@@ -144,14 +146,14 @@ export function UsersClient({ profiles, currentUserRole }: UsersClientProps) {
                       </td>
 
                       <td className="px-6 py-4">
-                        {isOwner ? (
+                        {canEditThisProfile ? (
                           <select
                             value={currentRole}
                             onChange={(e) => handleRoleChange(profile.id, e.target.value as any)}
                             disabled={isPending}
                             className="h-8 rounded border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 focus:outline-none"
                           >
-                            <option value="OWNER">Owner</option>
+                            {currentUserRole === "OWNER" && <option value="OWNER">Owner</option>}
                             <option value="MANAGER">Manager</option>
                             <option value="CASHIER">Cashier</option>
                             <option value="INVENTORY">Inventory Staff</option>
@@ -164,7 +166,7 @@ export function UsersClient({ profiles, currentUserRole }: UsersClientProps) {
                       </td>
 
                       <td className="px-6 py-4 text-center">
-                        {isOwner ? (
+                        {canEditThisProfile ? (
                           <select
                             value={currentStatus ? "true" : "false"}
                             onChange={(e) => handleStatusChange(profile.id, e.target.value === "true")}
@@ -181,11 +183,11 @@ export function UsersClient({ profiles, currentUserRole }: UsersClientProps) {
                         )}
                       </td>
 
-                      {isOwner && (
+                      {canManageUsers && (
                         <td className="px-6 py-4 text-right pr-8">
                           <Button
                             size="sm"
-                            disabled={!isModified || isPending}
+                            disabled={!isModified || isPending || !canEditThisProfile}
                             onClick={() => handleSaveChanges(profile.id)}
                             className="font-semibold text-xs py-1 px-3.5 gap-1.5 shadow-sm cursor-pointer"
                           >

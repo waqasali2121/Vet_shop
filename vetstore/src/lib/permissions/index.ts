@@ -91,7 +91,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     "expenses.view", "expenses.create", "expenses.update",
     "cash_register.view", "cash_register.close",
     "reports.sales", "reports.profit", "reports.inventory", "reports.financial",
-    "users.view",
+    "users.view", "users.manage",
   ],
   CASHIER: [
     "dashboard.view",

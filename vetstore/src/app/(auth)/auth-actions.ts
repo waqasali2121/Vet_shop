@@ -123,3 +123,20 @@ export async function resetPassword(prevState: any, formData: FormData) {
     }
   }
 }
+
+export async function changePassword(password: string, confirmPassword: string) {
+  if (!password || password.length < 6) {
+    return { error: "Password must be at least 6 characters long" }
+  }
+  if (password !== confirmPassword) {
+    return { error: "Passwords do not match" }
+  }
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) throw error
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || "Failed to update password" }
+  }
+}

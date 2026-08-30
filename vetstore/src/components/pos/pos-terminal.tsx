@@ -62,6 +62,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
   const [isPending, startTransition] = useTransition()
 
   // State Management
+  const [activeTab, setActiveTab] = useState<"products" | "cart">("products")
   const [cart, setCart] = useState<CartItem[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCustomerId, setSelectedCustomerId] = useState(defaultCustomerId || "00000000-0000-0000-0000-000000000000") // Walk-in or default
@@ -362,10 +363,48 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
     window.open(`/api/receipt?id=${completedSaleId}`, "_blank", "width=400,height=600")
   }
 
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-5 flex-1 min-h-0 md:h-full md:overflow-hidden pr-1">
-      {/* LEFT COLUMN: Product Catalog & Search (3/5 width) */}
-      <div className="col-span-1 md:col-span-3 flex flex-col h-auto md:h-full space-y-4">
+    <div className="flex flex-col flex-1 min-h-0 md:h-full w-full">
+      {/* Mobile Tab Switcher */}
+      <div className="flex md:hidden border border-slate-200 rounded-lg bg-white p-1 mb-2.5 shrink-0">
+        <button
+          type="button"
+          onClick={() => setActiveTab("products")}
+          className={`flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all cursor-pointer ${
+            activeTab === "products"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Product List
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("cart")}
+          className={`flex-1 py-1.5 text-center text-xs font-bold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            activeTab === "cart"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-slate-500 hover:bg-slate-100"
+          }`}
+        >
+          Cart & Checkout
+          {cartCount > 0 && (
+            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+              activeTab === "cart"
+                ? "bg-white text-primary"
+                : "bg-primary text-primary-foreground"
+            }`}>
+              {cartCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-5 flex-1 min-h-0 md:h-full md:overflow-hidden pr-1">
+        {/* LEFT COLUMN: Product Catalog & Search (3/5 width) */}
+        <div className={`col-span-1 md:col-span-3 flex flex-col min-h-0 space-y-4 ${activeTab === "products" ? "flex" : "hidden md:flex"}`}>
         {/* Search Header */}
         <Card className="border-slate-200/80 shadow-sm shrink-0">
           <CardContent className="p-4">
@@ -407,9 +446,12 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                 <p className="text-[11px]">Verify if product is active and has registered barcode.</p>
               </div>
             ) : (
-              <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-2.5 p-3.5 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProducts.map((product) => {
                   const outOfStock = product.total_stock <= 0
+                  const cartItem = cart.find(item => item.product.id === product.id)
+                  const selectedQty = cartItem ? cartItem.quantity : 0
+
                   return (
                     <button
                       key={product.id}
@@ -419,6 +461,11 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                         outOfStock ? "opacity-60 bg-slate-50 border-slate-200" : "border-slate-200"
                       }`}
                     >
+                      {selectedQty > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border border-white shadow-sm">
+                          {selectedQty}
+                        </span>
+                      )}
                       <div className="font-bold text-slate-800 text-xs line-clamp-2 min-h-[2rem]">
                         {product.name}
                       </div>
@@ -450,7 +497,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
       </div>
 
       {/* RIGHT COLUMN: POS Cart & Checkout Panel (2/5 width) */}
-      <div className="col-span-1 md:col-span-2 flex flex-col h-auto md:h-full">
+      <div className={`col-span-1 md:col-span-2 flex flex-col min-h-0 ${activeTab === "cart" ? "flex" : "hidden md:flex"}`}>
         {/* Unified Cart & Checkout Card */}
         <Card className="border-slate-200/80 shadow-sm h-full flex flex-col overflow-hidden">
           {/* Card Header (Sticky) */}
@@ -488,7 +535,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       {/* Qty Modifiers */}
                       <div className="flex items-center border border-slate-200 rounded overflow-hidden">
                         <Button
@@ -952,5 +999,6 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
         </DialogContent>
       </Dialog>
     </div>
+  </div>
   )
 }

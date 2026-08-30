@@ -26,15 +26,31 @@ export async function updateUserProfile(id: string, role: "OWNER" | "MANAGER" | 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("Unauthorized")
 
-    // Check if user is OWNER
+    // Check if user is OWNER or MANAGER
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single()
 
-    if (!profile || profile.role !== "OWNER") {
-      return { error: "Permission Denied. Only Owners can manage employee credentials." }
+    if (!profile || (profile.role !== "OWNER" && profile.role !== "MANAGER")) {
+      return { error: "Permission Denied. Only Owners and Managers can manage employee credentials." }
+    }
+
+    // Security check: If current user is a MANAGER, prevent modifying an OWNER profile
+    if (profile.role === "MANAGER") {
+      const { data: targetProfile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", id)
+        .single()
+      if (targetProfile?.role === "OWNER") {
+        return { error: "Permission Denied. Managers cannot modify Owner profiles." }
+      }
+      // Also prevent MANAGER from setting someone else to OWNER
+      if (role === "OWNER") {
+        return { error: "Permission Denied. Managers cannot promote accounts to Owner role." }
+      }
     }
 
     // Update profile
