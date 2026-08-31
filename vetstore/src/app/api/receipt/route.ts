@@ -241,8 +241,12 @@ export async function GET(request: NextRequest) {
           <td class="text-right">Rs. ${Number(sale.paid_amount).toLocaleString()}</td>
         </tr>
         <tr class="bold">
-          <td style="color: ${sale.balance_amount > 0 ? '#dc2626' : '#1e293b'}">Balance Due:</td>
+          <td style="color: ${sale.balance_amount > 0 ? '#dc2626' : '#1e293b'}">Remaining Balance:</td>
           <td class="text-right" style="color: ${sale.balance_amount > 0 ? '#dc2626' : '#1e293b'}">Rs. ${Number(sale.balance_amount).toLocaleString()}</td>
+        </tr>
+        <tr>
+          <td class="bold">Payment Status:</td>
+          <td class="text-right bold" style="text-transform: uppercase; color: ${sale.payment_status === 'PAID' ? '#059669' : '#dc2626'}">${sale.payment_status}</td>
         </tr>
       </table>
 

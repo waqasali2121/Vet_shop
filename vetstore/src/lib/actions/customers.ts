@@ -52,7 +52,7 @@ export async function createCustomer(values: CustomerFormValues) {
       credit_limit: values.credit_limit,
       address: values.address || "",
       is_active: values.is_active,
-      current_balance: values.opening_balance || 0,
+      current_balance: 0,
     }
 
     const { data, error } = await supabase
@@ -63,18 +63,7 @@ export async function createCustomer(values: CustomerFormValues) {
 
     if (error) throw error
 
-    // Create customer ledger entry for opening balance if not zero
-    if (values.opening_balance !== 0) {
-      await supabase.from("customer_ledger").insert({
-        customer_id: data.id,
-        transaction_type: "OPENING_BALANCE",
-        reference_number: "OP-BAL",
-        debit: values.opening_balance > 0 ? values.opening_balance : 0.00,
-        credit: values.opening_balance < 0 ? Math.abs(values.opening_balance) : 0.00,
-        running_balance: values.opening_balance,
-        description: "Opening Balance setup"
-      })
-    }
+    // No opening balance ledger logic needed since balance starts at 0
 
     revalidatePath("/customers")
     revalidatePath("/pos")

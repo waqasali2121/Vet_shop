@@ -14,7 +14,6 @@ export const customerSchema = z.object({
     "OTHER"
   ]).default("WALK_IN"),
   credit_limit: z.coerce.number().min(0).default(0.00),
-  opening_balance: z.coerce.number().default(0.00),
   address: z.string().optional().nullable(),
   is_active: z.boolean().default(true),
 })

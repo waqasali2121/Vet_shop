@@ -50,7 +50,6 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
     phone: "",
     customer_type: "FARMER",
     credit_limit: 50000,
-    opening_balance: 0,
     address: "",
     is_active: true,
   }
@@ -79,7 +78,6 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
       phone: customer.phone,
       customer_type: customer.customer_type,
       credit_limit: Number(customer.credit_limit),
-      opening_balance: Number(customer.current_balance), // show current balance as reference
       address: customer.address || "",
       is_active: customer.is_active,
     })

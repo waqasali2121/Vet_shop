@@ -42,6 +42,7 @@ type POSCustomer = {
   phone: string
   credit_limit: number
   current_balance: number
+  customer_type?: any
 }
 
 interface POSTerminalProps {
@@ -106,7 +107,6 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
   const [custName, setCustName] = useState("")
   const [custPhone, setCustPhone] = useState("")
   const [custType, setCustType] = useState<any>("WALK_IN")
-  const [custLimit, setCustLimit] = useState("50000")
   const [creatingCust, setCreatingCust] = useState(false)
 
   // Edit Customer State
@@ -138,7 +138,6 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
         phone: editCustPhone,
         customer_type: selectedCustomer?.customer_type || "FARMER",
         credit_limit: selectedCustomer?.credit_limit || 50000,
-        opening_balance: 0,
         address: "",
         is_active: true
       })
@@ -301,7 +300,6 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
         phone: custPhone,
         customer_type: custType,
         credit_limit: 50000,
-        opening_balance: 0,
         address: "",
         is_active: true
       })
@@ -333,7 +331,7 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
     // Walk-in credit check
     const isWalkIn = selectedCustomerId === "00000000-0000-0000-0000-000000000000"
     if (isWalkIn && balanceDue > 0) {
-      setError("Walk-in customers cannot purchase on credit. Cash or digital payment must match Grand Total.")
+      setError("Please select or add a customer to record the remaining balance.")
       return
     }
 
@@ -473,18 +471,22 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
               {/* Customer Selector */}
               <div className="flex items-center gap-1.5 sm:col-span-2">
                 <div className="relative flex-1">
-                  <select
+                  <Input
+                    list="customers-list-top"
                     id="cust_select_search"
-                    value={selectedCustomerId}
-                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    value={customers.find(c => c.id === selectedCustomerId) ? `${customers.find(c => c.id === selectedCustomerId)!.name} (${customers.find(c => c.id === selectedCustomerId)!.phone})` : ""}
+                    onChange={(e) => {
+                      const matched = customers.find(c => `${c.name} (${c.phone})` === e.target.value)
+                      if (matched) setSelectedCustomerId(matched.id)
+                    }}
+                    placeholder="Search customer..."
                     className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none"
-                  >
+                  />
+                  <datalist id="customers-list-top">
                     {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.phone})
-                      </option>
+                      <option key={c.id} value={`${c.name} (${c.phone})`} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <Button
                   type="button"
@@ -720,18 +722,22 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
               <div className="flex items-end gap-1.5">
                 <div className="grid gap-1.5 flex-1">
                   <Label htmlFor="cust_select" className="text-xs text-slate-600 font-semibold">Select Customer</Label>
-                  <select
+                  <Input
+                    list="customers-list-mid"
                     id="cust_select"
-                    value={selectedCustomerId}
-                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    value={customers.find(c => c.id === selectedCustomerId) ? `${customers.find(c => c.id === selectedCustomerId)!.name} (${customers.find(c => c.id === selectedCustomerId)!.phone})` : ""}
+                    onChange={(e) => {
+                      const matched = customers.find(c => `${c.name} (${c.phone})` === e.target.value)
+                      if (matched) setSelectedCustomerId(matched.id)
+                    }}
+                    placeholder="Search or select customer..."
                     className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none"
-                  >
+                  />
+                  <datalist id="customers-list-mid">
                     {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.phone})
-                      </option>
+                      <option key={c.id} value={`${c.name} (${c.phone})`} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <Button
                   type="button"
@@ -753,7 +759,6 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
                   title="Add New Customer"
                 >
                   <UserPlus className="h-4 w-4" />
-                </Button>
                 </Button>
               </div>
 
@@ -933,23 +938,19 @@ export function POSTerminal({ initialProducts, customers, activeSession, default
               <span className="text-base font-black text-slate-900">Rs. {grandTotal.toLocaleString()}</span>
             </div>
 
-            {/* Cash payment calculations */}
-            {totalPaid > 0 && (
-              <div className="flex justify-between text-emerald-600 border-t border-dashed border-slate-200 pt-1.5">
-                <span>Total Paid (Received)</span>
-                <span>Rs. {totalPaid.toLocaleString()}</span>
-              </div>
-            )}
+            <div className="flex justify-between text-emerald-600 font-bold border-t border-dashed border-slate-200 pt-1.5">
+              <span>Paid Amount</span>
+              <span>Rs. {Math.min(grandTotal, totalPaid).toLocaleString()}</span>
+            </div>
+            <div className={`flex justify-between font-bold ${balanceDue > 0 ? 'text-red-600' : 'text-slate-500'}`}>
+              <span>Remaining / Due</span>
+              <span>Rs. {balanceDue.toLocaleString()}</span>
+            </div>
+
             {changeAmount > 0 && (
-              <div className="flex justify-between text-blue-600 font-bold">
+              <div className="flex justify-between text-blue-600 font-bold border-t border-slate-100 pt-1">
                 <span>Change Return Cash</span>
                 <span>Rs. {changeAmount.toLocaleString()}</span>
-              </div>
-            )}
-            {balanceDue > 0 && (
-              <div className="flex justify-between text-red-600 font-bold">
-                <span>Unpaid Balance (Credit/Udhaar)</span>
-                <span>Rs. {balanceDue.toLocaleString()}</span>
               </div>
             )}
           </div>
