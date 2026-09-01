@@ -510,8 +510,8 @@ export function OCRScanner({ mode, products, onSingleSelect, onListSelect, isOpe
                       <video
                         ref={videoRef}
                         className="w-full max-h-[350px] object-contain rounded-md"
-                        autoplay
-                        playsinline
+                        autoPlay
+                        playsInline
                         muted
                       />
                       {/* Guides overlay */}
