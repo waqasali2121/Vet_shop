@@ -140,3 +140,18 @@ export async function changePassword(password: string, confirmPassword: string) 
     return { error: err.message || "Failed to update password" }
   }
 }
+
+export async function updateProfileAvatar(avatarDataUrl: string) {
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.updateUser({
+      data: { avatar_url: avatarDataUrl }
+    })
+    if (error) throw error
+    revalidatePath("/", "layout")
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || "Failed to update profile picture" }
+  }
+}
+

@@ -9,12 +9,14 @@ interface DashboardLayoutClientProps {
   children: React.ReactNode
   userEmail: string
   userRole: string
+  userAvatar?: string | null
 }
 
 export function DashboardLayoutClient({
   children,
   userEmail,
   userRole,
+  userAvatar = null,
 }: DashboardLayoutClientProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const pathname = usePathname()
@@ -69,6 +71,7 @@ export function DashboardLayoutClient({
           onToggleSidebar={toggleSidebar}
           userEmail={userEmail}
           userRole={userRole}
+          userAvatar={userAvatar}
           registerSession={null} // Will hook up to real cash sessions in Phase 9
         />
         <main className={mainClasses}>
