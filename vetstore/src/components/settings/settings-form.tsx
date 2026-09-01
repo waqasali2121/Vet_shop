@@ -44,9 +44,9 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Max 20KB validation
-    if (file.size > 20 * 1024) {
-      setAvatarError(`Image size must be less than 20KB. Current file size: ${(file.size / 1024).toFixed(1)}KB.`)
+    // Max 80KB validation
+    if (file.size > 80 * 1024) {
+      setAvatarError(`Image size must be less than 80KB. Current file size: ${(file.size / 1024).toFixed(1)}KB.`)
       e.target.value = ""
       return
     }
@@ -200,7 +200,7 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
             <span>Profile Picture Avatar</span>
           </CardTitle>
           <CardDescription className="text-slate-500 text-xs font-semibold">
-            Upload your personal avatar photo for POS header & account menus. Maximum image size is <strong>20KB</strong>.
+            Upload your personal avatar photo for POS header & account menus. Maximum image size is <strong>80KB</strong>.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
@@ -225,7 +225,7 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
             </div>
             <div className="space-y-2 flex-1">
               <Label htmlFor="avatar_input" className="text-xs font-bold text-slate-700 block">
-                Select Photo (&le; 20KB)
+                Select Photo (&le; 80KB)
               </Label>
               <Input
                 id="avatar_input"
