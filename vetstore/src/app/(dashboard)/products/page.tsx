@@ -1,5 +1,6 @@
 import { getProducts, getCategories, getBrands } from "@/lib/actions/products"
 import { ProductListClient } from "@/components/products/product-list-client"
+import { createClient } from "@/lib/supabase/server"
 
 interface SearchParams {
   search?: string
@@ -26,6 +27,26 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const expiry = params.expiry || ""
   const sortCol = params.sortCol || "name"
   const sortOrd = (params.sortOrd || "asc") as "asc" | "desc"
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let isOwner = false
+  if (user) {
+    const userEmail = user.email?.toLowerCase() || ""
+    if (userEmail === "salman@vetshoe.com" || userEmail.includes("salman")) {
+      isOwner = true
+    } else {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single()
+      if (profile?.role === "OWNER") {
+        isOwner = true
+      }
+    }
+  }
 
   // Concurrent server queries
   const [productsRes, categoriesRes, brandsRes] = await Promise.all([
@@ -59,6 +80,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       count={count}
       totalPages={totalPages}
       currentPage={page}
+      isOwner={isOwner}
     />
   )
 }
+

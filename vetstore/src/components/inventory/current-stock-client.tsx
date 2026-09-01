@@ -1,12 +1,11 @@
 "use client"
 
-import * as React from "react"
 import { useState } from "react"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search, Eye, Warehouse, Coins, TrendingUp, PackageOpen } from "lucide-react"
 import Link from "next/link"
 
@@ -32,12 +31,14 @@ interface CurrentStockClientProps {
   stockItems: StockItem[]
   categories: { id: string; name: string }[]
   brands: { id: string; name: string }[]
+  isOwner?: boolean
 }
 
 export function CurrentStockClient({
   stockItems,
   categories,
   brands,
+  isOwner = false,
 }: CurrentStockClientProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -87,16 +88,18 @@ export function CurrentStockClient({
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200/80 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">Valuation (Cost)</CardTitle>
-            <Coins className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">Rs. {totalCostValuation.toLocaleString()}</div>
-            <p className="text-xs text-slate-500 mt-1 font-medium">Sum of batch-wise unit costs</p>
-          </CardContent>
-        </Card>
+        {isOwner && (
+          <Card className="border-slate-200/80 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">Valuation (Cost)</CardTitle>
+              <Coins className="h-4 w-4 text-emerald-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">Rs. {totalCostValuation.toLocaleString()}</div>
+              <p className="text-xs text-slate-500 mt-1 font-medium">Sum of batch-wise unit costs</p>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="border-slate-200/80 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -199,7 +202,7 @@ export function CurrentStockClient({
                     <th className="px-6 py-3">SKU / Barcode</th>
                     <th className="px-6 py-3">Category / Brand</th>
                     <th className="px-6 py-3">Available stock</th>
-                    <th className="px-6 py-3">Cost Valuation</th>
+                    {isOwner && <th className="px-6 py-3">Cost Valuation</th>}
                     <th className="px-6 py-3">Retail Valuation</th>
                     <th className="px-6 py-3 text-right">Actions</th>
                   </tr>
@@ -247,9 +250,11 @@ export function CurrentStockClient({
                           </p>
                         </td>
 
-                        <td className="px-6 py-4 font-semibold text-slate-700">
-                          Rs. {item.cost_valuation.toLocaleString()}
-                        </td>
+                        {isOwner && (
+                          <td className="px-6 py-4 font-semibold text-slate-700">
+                            Rs. {item.cost_valuation.toLocaleString()}
+                          </td>
+                        )}
 
                         <td className="px-6 py-4 font-bold text-slate-800">
                           Rs. {item.retail_valuation.toLocaleString()}

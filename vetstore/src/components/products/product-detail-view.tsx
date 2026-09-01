@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -46,9 +45,10 @@ type Batch = {
 interface ProductDetailViewProps {
   product: Product
   batches: Batch[]
+  isOwner?: boolean
 }
 
-export function ProductDetailView({ product, batches }: ProductDetailViewProps) {
+export function ProductDetailView({ product, batches, isOwner = false }: ProductDetailViewProps) {
   // Calculate total stock
   const totalStock = batches.reduce((sum, b) => sum + b.available_quantity, 0)
 
@@ -170,10 +170,12 @@ export function ProductDetailView({ product, batches }: ProductDetailViewProps) 
               <CardTitle className="text-sm font-bold text-slate-900">Pricing Structures</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-3.5 text-sm">
-              <div className="flex justify-between border-b border-slate-100 pb-2">
-                <span className="text-slate-400 font-semibold">Reference Cost</span>
-                <span className="font-bold text-slate-800">Rs. {product.purchase_price_reference.toLocaleString()}</span>
-              </div>
+              {isOwner && (
+                <div className="flex justify-between border-b border-slate-100 pb-2">
+                  <span className="text-slate-400 font-semibold">Reference Cost</span>
+                  <span className="font-bold text-slate-800">Rs. {product.purchase_price_reference.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between border-b border-slate-100 pb-2">
                 <span className="text-slate-400 font-semibold">Retail Price</span>
                 <span className="font-bold text-emerald-700">Rs. {product.retail_price.toLocaleString()}</span>
@@ -243,7 +245,7 @@ export function ProductDetailView({ product, batches }: ProductDetailViewProps) 
                       <tr className="border-b border-slate-100 bg-slate-50/75 text-xs font-bold text-slate-500 uppercase tracking-wider">
                         <th className="px-6 py-3">Batch Number</th>
                         <th className="px-6 py-3">Expiry Date</th>
-                        <th className="px-6 py-3">Unit Cost</th>
+                        {isOwner && <th className="px-6 py-3">Unit Cost</th>}
                         <th className="px-6 py-3">Stock Qty</th>
                         <th className="px-6 py-3 text-center">Expiry Status</th>
                       </tr>
@@ -271,9 +273,11 @@ export function ProductDetailView({ product, batches }: ProductDetailViewProps) 
                                 "—"
                               )}
                             </td>
-                            <td className="px-6 py-4 font-semibold text-slate-700">
-                              Rs. {batch.unit_cost.toLocaleString()}
-                            </td>
+                            {isOwner && (
+                              <td className="px-6 py-4 font-semibold text-slate-700">
+                                Rs. {batch.unit_cost.toLocaleString()}
+                              </td>
+                            )}
                             <td className="px-6 py-4 font-bold text-slate-800">
                               {batch.available_quantity} / {batch.initial_quantity}
                             </td>

@@ -57,6 +57,7 @@ interface ProductListClientProps {
   count: number
   totalPages: number
   currentPage: number
+  isOwner?: boolean
 }
 
 export function ProductListClient({
@@ -66,6 +67,7 @@ export function ProductListClient({
   count,
   totalPages,
   currentPage,
+  isOwner = false,
 }: ProductListClientProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -414,9 +416,11 @@ export function ProductListClient({
                       Product {sortCol === "name" && (sortOrd === "asc" ? "▲" : "▼")}
                     </th>
                     <th className="px-6 py-3">Category</th>
-                    <th onClick={() => handleSort("purchase_price_reference")} className="px-6 py-3 text-right cursor-pointer hover:bg-slate-100/70 transition-colors">
-                      Purchase {sortCol === "purchase_price_reference" && (sortOrd === "asc" ? "▲" : "▼")}
-                    </th>
+                    {isOwner && (
+                      <th onClick={() => handleSort("purchase_price_reference")} className="px-6 py-3 text-right cursor-pointer hover:bg-slate-100/70 transition-colors">
+                        Purchase {sortCol === "purchase_price_reference" && (sortOrd === "asc" ? "▲" : "▼")}
+                      </th>
+                    )}
                     <th onClick={() => handleSort("retail_price")} className="px-6 py-3 text-right cursor-pointer hover:bg-slate-100/70 transition-colors">
                       Sale {sortCol === "retail_price" && (sortOrd === "asc" ? "▲" : "▼")}
                     </th>
@@ -463,10 +467,12 @@ export function ProductListClient({
                           </div>
                         </td>
 
-                        {/* Purchase price */}
-                        <td className="px-6 py-4 text-right font-semibold text-slate-800 text-[13px]">
-                          Rs. {Number(product.purchase_price_reference).toLocaleString()}
-                        </td>
+                        {/* Purchase price (Visible to Owner only) */}
+                        {isOwner && (
+                          <td className="px-6 py-4 text-right font-semibold text-slate-800 text-[13px]">
+                            Rs. {Number(product.purchase_price_reference).toLocaleString()}
+                          </td>
+                        )}
 
                         {/* Retail price */}
                         <td className="px-6 py-4 text-right font-bold text-slate-900 text-[13px]">
@@ -652,10 +658,12 @@ export function ProductListClient({
                   <span className="text-slate-450 block font-semibold">Barcode (EAN)</span>
                   <span className="font-mono text-slate-850 font-bold">{viewProduct.barcode || "—"}</span>
                 </div>
-                <div>
-                  <span className="text-slate-450 block font-semibold">Ref Purchase Price</span>
-                  <span className="font-bold text-slate-800">Rs. {Number(viewProduct.purchase_price_reference).toLocaleString()}</span>
-                </div>
+                {isOwner && (
+                  <div>
+                    <span className="text-slate-450 block font-semibold">Ref Purchase Price</span>
+                    <span className="font-bold text-slate-800">Rs. {Number(viewProduct.purchase_price_reference).toLocaleString()}</span>
+                  </div>
+                )}
                 <div>
                   <span className="text-slate-450 block font-semibold">POS Selling Price</span>
                   <span className="font-bold text-emerald-700">Rs. {Number(viewProduct.retail_price).toLocaleString()}</span>
@@ -696,7 +704,7 @@ export function ProductListClient({
                           <th className="px-4 py-2">Batch #</th>
                           <th className="px-4 py-2">Supplier</th>
                           <th className="px-4 py-2 text-right">Available Qty</th>
-                          <th className="px-4 py-2 text-right">Unit cost</th>
+                          {isOwner && <th className="px-4 py-2 text-right">Unit cost</th>}
                           <th className="px-4 py-2">Expiry Date</th>
                         </tr>
                       </thead>
@@ -706,7 +714,7 @@ export function ProductListClient({
                             <td className="px-4 py-2 font-mono">{batch.batch_number}</td>
                             <td className="px-4 py-2">{batch.supplier?.name || "—"}</td>
                             <td className="px-4 py-2 text-right text-slate-800">{batch.available_quantity}</td>
-                            <td className="px-4 py-2 text-right">Rs. {Number(batch.unit_cost).toLocaleString()}</td>
+                            {isOwner && <td className="px-4 py-2 text-right">Rs. {Number(batch.unit_cost).toLocaleString()}</td>}
                             <td className="px-4 py-2">
                               {batch.expiry_date
                                 ? new Date(batch.expiry_date).toLocaleDateString()
