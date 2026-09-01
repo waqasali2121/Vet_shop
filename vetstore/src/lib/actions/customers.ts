@@ -158,7 +158,60 @@ export async function createCustomerPayment(
     const suffix = String((count || 0) + 1).padStart(4, "0")
     const receiptNumber = `${prefix}-${suffix}`
 
-    // 2. Update Customer Balance
+    // 2. Update Unpaid Sales
+    let remainingAmountToDistribute = amount;
+    const updatedSaleIds: string[] = [];
+    const { data: unpaidSales } = await supabase
+      .from("sales")
+      .select("id, grand_total, paid_amount, balance_amount, payment_status")
+      .eq("customer_id", customerId)
+      .gt("balance_amount", 0)
+      .neq("sale_status", "VOIDED")
+      .order("created_at", { ascending: true });
+
+    if (unpaidSales && unpaidSales.length > 0) {
+      for (const sale of unpaidSales) {
+        if (remainingAmountToDistribute <= 0) break;
+
+        const payable = Math.min(Number(sale.balance_amount), remainingAmountToDistribute);
+        remainingAmountToDistribute -= payable;
+
+        const newPaidAmount = Number(sale.paid_amount) + payable;
+        const newBalanceAmount = Number(sale.balance_amount) - payable;
+        const newStatus = newBalanceAmount <= 0 ? "PAID" : "PARTIAL";
+
+        await supabase
+          .from("sales")
+          .update({
+            paid_amount: newPaidAmount,
+            balance_amount: newBalanceAmount,
+            payment_status: newStatus
+          })
+          .eq("id", sale.id);
+
+        updatedSaleIds.push(sale.id);
+      }
+    }
+
+    // 3. Log to customer_payments table
+    const { data: newPayment, error: paymentError } = await supabase
+      .from("customer_payments")
+      .insert({
+        customer_id: customerId,
+        amount: amount,
+        payment_method: paymentMethod,
+        previous_balance: customer.current_balance,
+        new_balance: newBalance,
+        reference_number: receiptNumber,
+        notes: notes,
+        received_by: user.id
+      })
+      .select()
+      .single();
+
+    if (paymentError) throw paymentError
+
+    // 4. Update Customer Balance
     const { error: customerUpdateError } = await supabase
       .from("customers")
       .update({ current_balance: newBalance })
@@ -166,7 +219,7 @@ export async function createCustomerPayment(
 
     if (customerUpdateError) throw customerUpdateError
 
-    // 3. Log Customer Ledger Entry (Credit decreases receivable)
+    // 5. Log Customer Ledger Entry (Credit decreases receivable)
     const { data: ledgerEntry, error: ledgerError } = await supabase
       .from("customer_ledger")
       .insert({
@@ -183,7 +236,7 @@ export async function createCustomerPayment(
 
     if (ledgerError) throw ledgerError
 
-    // 4. Handle Active Cash Session for CASH collections (inflow)
+    // 6. Handle Active Cash Session for CASH collections (inflow)
     if (paymentMethod === "CASH") {
       const { data: activeSession } = await supabase
         .from("cash_register_sessions")
@@ -210,7 +263,7 @@ export async function createCustomerPayment(
       }
     }
 
-    // 5. Audit Log
+    // 7. Audit Log
     await supabase.from("audit_logs").insert({
       user_id: user.id,
       action: "CUSTOMER_PAYMENT",
@@ -224,7 +277,11 @@ export async function createCustomerPayment(
     revalidatePath("/customers")
     revalidatePath(`/customers/${customerId}`)
     revalidatePath("/pos")
-    return { success: true }
+    revalidatePath("/sales")
+    for (const saleId of updatedSaleIds) {
+      revalidatePath(`/sales/${saleId}`)
+    }
+    return { success: true, data: { paymentId: newPayment.id } }
   } catch (err: any) {
     return { error: err.message || "Failed to log customer payment" }
   }
@@ -246,6 +303,67 @@ export async function getCustomerPayments() {
     return { data: data || [] }
   } catch (err: any) {
     return { error: err.message || "Failed to fetch customer payments" }
+  }
+}
+
+export async function deleteCustomer(id: string) {
+  try {
+    const supabase = await createClient()
+
+    // Prevent deleting the Walk-in Customer
+    if (id === "00000000-0000-0000-0000-000000000000") {
+      return { error: "The Walk-in Customer account cannot be deleted." }
+    }
+
+    const { error } = await supabase
+      .from("customers")
+      .delete()
+      .eq("id", id)
+
+    if (error) {
+      // FK constraint — customer has sales/ledger history
+      if (error.code === "23503") {
+        const { error: deactivateError } = await supabase
+          .from("customers")
+          .update({ is_active: false })
+          .eq("id", id)
+
+        if (deactivateError) throw deactivateError
+
+        revalidatePath("/customers")
+        revalidatePath(`/customers/${id}`)
+        return {
+          success: true,
+          message: "This customer has transaction history and cannot be deleted permanently. We have deactivated the account instead."
+        }
+      }
+      throw error
+    }
+
+    revalidatePath("/customers")
+    revalidatePath("/pos")
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || "Failed to delete customer" }
+  }
+}
+
+export async function getCustomerPaymentHistory(customerId: string) {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from("customer_payments")
+      .select(`
+        *,
+        receiver:profiles!customer_payments_received_by_fkey(id, first_name, last_name, email)
+      `)
+      .eq("customer_id", customerId)
+      .order("created_at", { ascending: false })
+
+    if (error) throw error
+    return { data: data || [] }
+  } catch (err: any) {
+    return { error: err.message || "Failed to fetch customer payment history" }
   }
 }
 

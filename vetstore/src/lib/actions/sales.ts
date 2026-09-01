@@ -560,6 +560,164 @@ export async function voidSale(saleId: string, reason: string) {
   }
 }
 
+export async function deleteSale(saleId: string) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Unauthorized")
+
+    // Verify MANAGER or OWNER role
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+
+    if (!profile || !["OWNER", "MANAGER"].includes(profile.role)) {
+      return { error: "Permission Denied. Only Owners or Managers can delete sales records." }
+    }
+
+    // Fetch original sale
+    const { data: sale, error: saleErr } = await supabase
+      .from("sales")
+      .select("*")
+      .eq("id", saleId)
+      .single()
+
+    if (saleErr || !sale) throw new Error("Sale not found")
+
+    // Fetch sale items with batch allocations
+    const { data: items, error: itemsErr } = await supabase
+      .from("sale_items")
+      .select(`
+        id,
+        product_id,
+        quantity,
+        allocations:sale_batch_allocations(batch_id, quantity)
+      `)
+      .eq("sale_id", saleId)
+
+    if (itemsErr) throw itemsErr
+
+    // 1. Restore inventory from batch allocations (only for non-voided sales)
+    if (sale.sale_status !== "VOIDED") {
+      for (const item of (items || [])) {
+        for (const alloc of (item.allocations || [])) {
+          const { data: batch } = await supabase
+            .from("product_batches")
+            .select("available_quantity")
+            .eq("id", alloc.batch_id)
+            .single()
+
+          if (batch) {
+            const nextStock = batch.available_quantity + alloc.quantity
+            await supabase
+              .from("product_batches")
+              .update({ available_quantity: nextStock })
+              .eq("id", alloc.batch_id)
+          }
+        }
+      }
+
+      // 2. Revert customer credit balance if credit was used
+      const isCredit = Number(sale.balance_amount) > 0
+      if (isCredit) {
+        const { data: customer } = await supabase
+          .from("customers")
+          .select("current_balance")
+          .eq("id", sale.customer_id)
+          .single()
+
+        if (customer) {
+          const nextBal = Number(customer.current_balance) - Number(sale.balance_amount)
+          await supabase
+            .from("customers")
+            .update({ current_balance: nextBal })
+            .eq("id", sale.customer_id)
+        }
+      }
+    }
+
+    // 3. Delete related records in correct order (child tables first)
+    // Delete sale batch allocations
+    for (const item of (items || [])) {
+      await supabase
+        .from("sale_batch_allocations")
+        .delete()
+        .eq("sale_item_id", item.id)
+    }
+
+    // Delete sale items
+    await supabase
+      .from("sale_items")
+      .delete()
+      .eq("sale_id", saleId)
+
+    // Delete sale payments
+    await supabase
+      .from("sale_payments")
+      .delete()
+      .eq("sale_id", saleId)
+
+    // Delete customer ledger entries for this sale
+    await supabase
+      .from("customer_ledger")
+      .delete()
+      .eq("reference_id", saleId)
+
+    // Delete inventory movements for this sale
+    await supabase
+      .from("inventory_movements")
+      .delete()
+      .eq("reference_id", saleId)
+
+    // Delete cash register movements for this sale
+    await supabase
+      .from("cash_register_movements")
+      .delete()
+      .eq("reference_id", saleId)
+
+    // Delete audit logs for this sale
+    await supabase
+      .from("audit_logs")
+      .delete()
+      .eq("entity_id", saleId)
+      .eq("entity_type", "SALE")
+
+    // 4. Finally delete the sale record itself
+    const { error: deleteError } = await supabase
+      .from("sales")
+      .delete()
+      .eq("id", saleId)
+
+    if (deleteError) throw deleteError
+
+    // 5. Create audit log for the deletion
+    await supabase.from("audit_logs").insert({
+      user_id: user.id,
+      action: "DELETE_SALE",
+      module: "SALES",
+      entity_type: "SALE",
+      entity_id: saleId,
+      old_data: { invoice_number: sale.invoice_number, grand_total: sale.grand_total },
+      new_data: null
+    })
+
+    revalidatePath("/sales")
+    revalidatePath("/inventory/stock")
+    revalidatePath("/inventory/batches")
+    revalidatePath("/cash-register")
+    revalidatePath("/customers")
+    if (sale.customer_id) {
+      revalidatePath(`/customers/${sale.customer_id}`)
+    }
+
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || "Failed to delete sale record" }
+  }
+}
+
 export async function getCustomerPurchaseHistory(customerId: string) {
   try {
     const supabase = await createClient()

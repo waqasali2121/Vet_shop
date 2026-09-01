@@ -13,8 +13,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Loader2, ChevronDown, ChevronUp } from "lucide-react"
+import { ArrowLeft, Loader2, ChevronDown, ChevronUp, Camera } from "lucide-react"
 import Link from "next/link"
+import { OCRScanner } from "@/components/shared/ocr-scanner"
 
 interface ProductFormProps {
   initialData?: ProductFormValues & { id: string }
@@ -35,6 +36,7 @@ export function ProductForm({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = React.useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = React.useState(false)
+  const [ocrScannerOpen, setOcrScannerOpen] = React.useState(false)
   const [suppliersList, setSuppliersList] = React.useState<any[]>(suppliers)
   const [supplierModalOpen, setSupplierModalOpen] = React.useState(false)
   const [newSupplierName, setNewSupplierName] = React.useState("")
@@ -203,7 +205,18 @@ export function ProductForm({
           </CardHeader>
           <CardContent className="grid gap-4 pt-4">
             <div className="grid gap-2">
-              <Label htmlFor="name" className="text-slate-700 font-semibold">Medicine Name *</Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="name" className="text-slate-700 font-semibold">Medicine Name *</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOcrScannerOpen(true)}
+                  className="h-8 px-2 text-[11px] font-semibold gap-1 cursor-pointer border-slate-200"
+                >
+                  <Camera className="h-3.5 w-3.5" /> Scan Box
+                </Button>
+              </div>
               <Input
                 id="name"
                 placeholder="e.g. Oxytetracycline 10% Injection"
@@ -534,6 +547,16 @@ export function ProductForm({
           </form>
         </DialogContent>
       </Dialog>
+
+      <OCRScanner
+        mode="single"
+        products={[]}
+        isOpen={ocrScannerOpen}
+        onClose={() => setOcrScannerOpen(false)}
+        onSingleSelect={(val) => {
+          setValue("name", val)
+        }}
+      />
     </div>
   )
 }

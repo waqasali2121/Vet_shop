@@ -14,9 +14,8 @@ import {
   BarChart3,
   ChevronDown,
   ChevronRight,
-  ShieldCheck,
   Plus,
-  AlertOctagon
+  AlertOctagon,
 } from "lucide-react"
 
 type SidebarItem = {
@@ -49,8 +48,11 @@ const sidebarItems: SidebarItem[] = [
   },
   {
     title: "Customers",
-    href: "/customers",
     icon: Users,
+    items: [
+      { title: "Customer List", href: "/customers" },
+      { title: "Customer Balance / Receive Payment", href: "/customers/payments" },
+    ],
   },
   {
     title: "Suppliers",

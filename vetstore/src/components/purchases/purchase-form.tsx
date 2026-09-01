@@ -4,12 +4,14 @@ import * as React from "react"
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { createPurchase } from "@/lib/actions/purchases"
+import { createProduct } from "@/lib/actions/products"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Plus, Trash, ArrowLeft, Loader2, Calculator } from "lucide-react"
+import { Plus, Trash, ArrowLeft, Loader2, Calculator, Camera } from "lucide-react"
 import Link from "next/link"
+import { OCRScanner, type ScannedItem } from "@/components/shared/ocr-scanner"
 
 type Supplier = {
   id: string
@@ -43,6 +45,8 @@ export function PurchaseForm({ suppliers, products }: PurchaseFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [ocrScannerOpen, setOcrScannerOpen] = useState(false)
+  const [isOcrImporting, setIsOcrImporting] = useState(false)
 
   // Header State
   const [supplierId, setSupplierId] = useState("")
@@ -98,6 +102,79 @@ export function PurchaseForm({ suppliers, products }: PurchaseFormProps) {
       [key]: value,
     }
     setItems(newItems)
+  }
+
+  const handleImportScannedItems = async (scannedList: ScannedItem[]) => {
+    setError(null)
+    setIsOcrImporting(true)
+    const newItems: PurchaseItemRow[] = []
+
+    // Filter products that aren't matched and need quick registration
+    const newProductsToCreate = scannedList.filter(item => !item.matchedProductId)
+
+    try {
+      const createdProductsMap: Record<string, string> = {}
+
+      for (const item of newProductsToCreate) {
+        // Quick creation with 15% standard markup for retail
+        const payload = {
+          name: item.name,
+          purchase_price_reference: item.unit_cost,
+          retail_price: Number((item.unit_cost * 1.15).toFixed(2)),
+          wholesale_price: item.unit_cost,
+          minimum_sale_price: item.unit_cost,
+          minimum_stock: 5,
+          reorder_quantity: 10,
+          track_batch: true,
+          track_expiry: true,
+          is_active: true,
+          category_id: "",
+          brand_id: "",
+          unit_id: "",
+          supplier_id: supplierId || "",
+          initial_quantity: 0, // 0 since we record the batch stock in the current invoice
+          batch_number: "",
+          expiry_date: ""
+        }
+
+        const res = await createProduct(payload)
+        if (res.error) {
+          throw new Error(`Failed to quick-register "${item.name}": ${res.error}`)
+        }
+        if (res.data) {
+          createdProductsMap[item.name] = res.data.id
+        }
+      }
+
+      // Map all scanned items to PurchaseItemRow format
+      scannedList.forEach(item => {
+        const productId = item.matchedProductId || createdProductsMap[item.name]
+        if (productId) {
+          newItems.push({
+            product_id: productId,
+            quantity: item.quantity,
+            bonus_quantity: item.bonus_quantity,
+            unit_cost: item.unit_cost,
+            discount_amount: item.discount_amount,
+            batch_number: item.batch_number || `BAT-${Math.floor(100000 + Math.random() * 900000)}`,
+            manufacturing_date: "",
+            expiry_date: item.expiry_date || new Date(Date.now() + 365 * 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+          })
+        }
+      })
+
+      // Replace if first row is default empty, otherwise append
+      const isDefaultEmpty = items.length === 1 && !items[0].product_id && items[0].quantity === 1 && items[0].unit_cost === 0
+      if (isDefaultEmpty) {
+        setItems(newItems)
+      } else {
+        setItems(prev => [...prev, ...newItems])
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to import scanned items")
+    } finally {
+      setIsOcrImporting(false)
+    }
   }
 
   // Calculations
@@ -267,10 +344,32 @@ export function PurchaseForm({ suppliers, products }: PurchaseFormProps) {
               Specify products, cost price, and pharmaceutical bonus (free items).
             </CardDescription>
           </div>
-          <Button type="button" onClick={handleAddItem} variant="outline" size="sm" className="font-semibold text-xs gap-1.5 cursor-pointer">
-            <Plus className="h-3.5 w-3.5" />
-            Add Row
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              onClick={() => setOcrScannerOpen(true)}
+              variant="outline"
+              size="sm"
+              disabled={isOcrImporting}
+              className="font-semibold text-xs gap-1.5 cursor-pointer bg-slate-50 hover:bg-slate-100 border-slate-200"
+            >
+              {isOcrImporting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Camera className="h-3.5 w-3.5" />
+                  Scan Receipt
+                </>
+              )}
+            </Button>
+            <Button type="button" onClick={handleAddItem} variant="outline" size="sm" className="font-semibold text-xs gap-1.5 cursor-pointer">
+              <Plus className="h-3.5 w-3.5" />
+              Add Row
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[900px]">
@@ -522,6 +621,14 @@ export function PurchaseForm({ suppliers, products }: PurchaseFormProps) {
           </CardFooter>
         </Card>
       </div>
+
+      <OCRScanner
+        mode="list"
+        products={products}
+        isOpen={ocrScannerOpen}
+        onClose={() => setOcrScannerOpen(false)}
+        onListSelect={handleImportScannedItems}
+      />
     </form>
   )
 }

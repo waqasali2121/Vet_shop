@@ -1,12 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
+import { deleteSale } from "@/lib/actions/sales"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Eye, ShoppingCart, Search } from "lucide-react"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Eye, ShoppingCart, Search, Trash2, AlertTriangle, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 type Sale = {
@@ -28,7 +31,25 @@ interface SalesListClientProps {
 }
 
 export function SalesListClient({ sales }: SalesListClientProps) {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
+  const [isPending, startTransition] = useTransition()
+  const [deleteSaleId, setDeleteSaleId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const handleDeleteSale = () => {
+    if (!deleteSaleId) return
+    setDeleteError(null)
+    startTransition(async () => {
+      const res = await deleteSale(deleteSaleId)
+      if (res.error) {
+        setDeleteError(res.error)
+      } else {
+        setDeleteSaleId(null)
+        router.refresh()
+      }
+    })
+  }
 
   const filteredSales = sales.filter((sale) => {
     const term = searchTerm.toLowerCase().trim()
@@ -151,13 +172,22 @@ export function SalesListClient({ sales }: SalesListClientProps) {
                         <td className="px-6 py-4 text-center">
                           {getSaleStatusBadge(sale.sale_status)}
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-4 text-right space-x-1 whitespace-nowrap">
                           <Link href={`/sales/${sale.id}`}>
                             <Button variant="ghost" size="sm" className="font-semibold text-primary hover:text-primary/80 gap-1.5 cursor-pointer">
                               <Eye className="h-3.5 w-3.5" />
                               Details
                             </Button>
                           </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteSaleId(sale.id)}
+                            className="h-8 w-8 text-red-500 hover:text-red-650 hover:bg-red-50 cursor-pointer"
+                            title="Delete transaction"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </td>
                       </tr>
                     )
@@ -168,6 +198,61 @@ export function SalesListClient({ sales }: SalesListClientProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirm Delete Sale Dialog */}
+      <Dialog open={!!deleteSaleId} onOpenChange={() => { setDeleteSaleId(null); setDeleteError(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500 animate-pulse" />
+              <span>Confirm Delete Transaction</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-2 space-y-3">
+            <p className="text-sm text-slate-500 font-semibold">
+              Are you sure you want to permanently delete this sale transaction? This action cannot be reversed.
+            </p>
+            <div className="bg-slate-50 border border-slate-200 rounded p-2.5 text-xs font-semibold text-slate-600">
+              <strong>Warning:</strong> Deleting will permanently remove the invoice, all payment records, and reverse any stock/balance changes associated with this transaction. Only Owners and Managers can perform this action.
+            </div>
+
+            {deleteError && (
+              <div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive font-medium border border-destructive/20">
+                {deleteError}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => setDeleteSaleId(null)}
+              className="font-semibold text-xs py-1 cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isPending}
+              onClick={handleDeleteSale}
+              className="font-bold text-xs py-1 cursor-pointer"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Transaction"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

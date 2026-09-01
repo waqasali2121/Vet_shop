@@ -14,7 +14,8 @@ import {
   Eye,
   AlertOctagon,
   Clock,
-  Sparkles
+  Sparkles,
+  Wallet
 } from "lucide-react"
 import Link from "next/link"
 
@@ -115,7 +116,13 @@ export default async function DashboardPage() {
             Welcome to Salman Farsy Veterinary Store POS terminal control panel.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/customers/payments">
+            <Button variant="outline" className="font-bold shadow-sm gap-2 cursor-pointer border-slate-200 text-slate-750 hover:bg-slate-50">
+              <Wallet className="h-4 w-4 text-primary" />
+              Customer Balance / Receive Payment
+            </Button>
+          </Link>
           <Link href="/pos">
             <Button className="font-bold shadow-sm gap-2 cursor-pointer bg-primary hover:bg-primary-hover text-white">
               <ShoppingCart className="h-4 w-4" />

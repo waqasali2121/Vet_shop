@@ -166,8 +166,8 @@ export async function GET(request: NextRequest) {
 
       <div class="text-center header">
         <img src="/logo.jpeg" alt="Logo" class="logo" />
-        <div class="store-name">${storeName}</div>
-        <div class="store-address">${storeAddress}<br>Mobile No. ${storePhone}</div>
+        <div class="store-name" style="font-size: 13px; font-weight: 800;">Salman Farsy Veterinary Store</div>
+        <div class="store-address">Gujrat Near Masjid Pakistan<br>Contact No. 0314-8020942</div>
         <div class="receipt-title">Retail Invoice</div>
       </div>
 
@@ -267,7 +267,8 @@ export async function GET(request: NextRequest) {
       <div class="text-center footer">
         <span class="bold" style="color: #000;">Thank You For Your Business!</span><br>
         Software Generated Retail Bill.<br>
-        For inquiries, call ${storePhone}
+        For inquiries, call 0314-8020942<br>
+        <span style="font-weight: 750; font-size: 8.5px; color: #475569; display: block; margin-top: 4px;">App Design By Waqas Ali</span>
       </div>
 
       <script>

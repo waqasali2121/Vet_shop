@@ -6,14 +6,14 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { customerSchema, type CustomerFormValues } from "@/lib/validations/customer"
-import { createCustomer, updateCustomer } from "@/lib/actions/customers"
+import { createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus, Edit, Eye, User, Loader2, Search, ShoppingCart } from "lucide-react"
+import { Plus, Edit, Eye, User, Loader2, Search, ShoppingCart, Trash2, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 
 type Customer = {
@@ -38,6 +38,8 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [deleteCustomerId, setDeleteCustomerId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const filteredCustomers = customers.filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,6 +109,23 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
 
   const formatCustomerType = (type: string) => {
     return type.replace("_", " ")
+  }
+
+  const handleDeleteCustomer = () => {
+    if (!deleteCustomerId) return
+    setDeleteError(null)
+    startTransition(async () => {
+      const res = await deleteCustomer(deleteCustomerId)
+      if (res.error) {
+        setDeleteError(res.error)
+      } else {
+        if (res.message) {
+          alert(res.message)
+        }
+        setDeleteCustomerId(null)
+        router.refresh()
+      }
+    })
   }
 
   return (
@@ -236,15 +255,26 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
                             </Button>
                           </Link>
                           {!isWalkIn && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenEdit(customer)}
-                              className="h-8 w-8 text-slate-500 hover:text-slate-750 hover:bg-slate-100 cursor-pointer"
-                              title="Edit"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenEdit(customer)}
+                                className="h-8 w-8 text-slate-500 hover:text-slate-750 hover:bg-slate-100 cursor-pointer"
+                                title="Edit"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeleteCustomerId(customer.id)}
+                                className="h-8 w-8 text-red-500 hover:text-red-650 hover:bg-red-50 cursor-pointer"
+                                title="Delete customer"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
                           )}
                         </td>
                       </tr>
@@ -359,6 +389,61 @@ export function CustomerListClient({ customers }: CustomerListClientProps) {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Delete Customer Dialog */}
+      <Dialog open={!!deleteCustomerId} onOpenChange={() => { setDeleteCustomerId(null); setDeleteError(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500 animate-pulse" />
+              <span>Confirm Delete Customer</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-2 space-y-3">
+            <p className="text-sm text-slate-500 font-semibold">
+              Are you sure you want to delete this customer? This action cannot be reversed.
+            </p>
+            <div className="bg-slate-50 border border-slate-200 rounded p-2.5 text-xs font-semibold text-slate-600">
+              Note: If this customer has past sales or payment history, they cannot be deleted permanently. The system will automatically <strong>deactivate</strong> the account instead so it no longer appears in checkout.
+            </div>
+
+            {deleteError && (
+              <div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive font-medium border border-destructive/20">
+                {deleteError}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => setDeleteCustomerId(null)}
+              className="font-semibold text-xs py-1 cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isPending}
+              onClick={handleDeleteCustomer}
+              className="font-bold text-xs py-1 cursor-pointer"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Customer"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
