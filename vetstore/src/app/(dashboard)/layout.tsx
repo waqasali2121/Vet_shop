@@ -35,13 +35,10 @@ export default async function DashboardLayout({
     // Suppress error and use fallback during setup/seeding
   }
 
-  const userAvatar = user.user_metadata?.avatar_url || null
-
   return (
     <DashboardLayoutClient
       userEmail={user.email || "staff@salmanfarsy.com"}
       userRole={userRole}
-      userAvatar={userAvatar}
     >
       {children}
     </DashboardLayoutClient>

@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Loader2, Settings2, KeyRound, UserCheck, Upload, Image as ImageIcon } from "lucide-react"
-import { changePassword, updateProfileAvatar } from "@/app/(auth)/auth-actions"
+import { Loader2, Settings2, KeyRound } from "lucide-react"
+import { changePassword } from "@/app/(auth)/auth-actions"
 
 interface SettingsFormProps {
   initialData?: StoreSettingsFormValues
@@ -31,48 +31,6 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
   const [pwPending, startPwTransition] = useTransition()
   const [pwError, setPwError] = useState<string | null>(null)
   const [pwSuccess, setPwSuccess] = useState<string | null>(null)
-
-  // Profile Picture state
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
-  const [avatarError, setAvatarError] = useState<string | null>(null)
-  const [avatarSuccess, setAvatarSuccess] = useState<string | null>(null)
-  const [avatarPending, startAvatarTransition] = useTransition()
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAvatarError(null)
-    setAvatarSuccess(null)
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Max 80KB validation
-    if (file.size > 80 * 1024) {
-      setAvatarError(`Image size must be less than 80KB. Current file size: ${(file.size / 1024).toFixed(1)}KB.`)
-      e.target.value = ""
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setAvatarPreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const handleSaveAvatar = () => {
-    if (!avatarPreview) return
-    setAvatarError(null)
-    setAvatarSuccess(null)
-
-    startAvatarTransition(async () => {
-      const res = await updateProfileAvatar(avatarPreview)
-      if (res.error) {
-        setAvatarError(res.error)
-      } else {
-        setAvatarSuccess("Profile picture updated successfully!")
-        router.refresh()
-      }
-    })
-  }
 
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault()
@@ -191,76 +149,6 @@ export function SettingsForm({ initialData, currentUserRole }: SettingsFormProps
           {success}
         </div>
       )}
-
-      {/* 0. Profile Avatar Settings Card (Available to All Roles) */}
-      <Card className="border-slate-200/80 shadow-sm">
-        <CardHeader className="pb-3 border-b border-slate-100">
-          <CardTitle className="font-bold text-slate-900 flex items-center gap-2">
-            <ImageIcon className="h-4.5 w-4.5 text-slate-500" />
-            <span>Profile Picture Avatar</span>
-          </CardTitle>
-          <CardDescription className="text-slate-500 text-xs font-semibold">
-            Upload your personal avatar photo for POS header & account menus. Maximum image size is <strong>80KB</strong>.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-4 space-y-4">
-          {avatarError && (
-            <div className="rounded-md bg-destructive/10 p-2.5 text-xs text-destructive font-semibold border border-destructive/20">
-              {avatarError}
-            </div>
-          )}
-          {avatarSuccess && (
-            <div className="rounded-md bg-emerald-50 p-2.5 text-xs text-emerald-700 font-bold border border-emerald-200">
-              {avatarSuccess}
-            </div>
-          )}
-          <div className="flex items-center gap-5">
-            <div className="relative h-16 w-16 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-100 flex items-center justify-center shrink-0">
-              {avatarPreview ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={avatarPreview} alt="Avatar Preview" className="h-full w-full object-cover" />
-              ) : (
-                <UserCheck className="h-8 w-8 text-slate-400" />
-              )}
-            </div>
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="avatar_input" className="text-xs font-bold text-slate-700 block">
-                Select Photo (&le; 80KB)
-              </Label>
-              <Input
-                id="avatar_input"
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                disabled={avatarPending}
-                className="text-xs file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
-              />
-            </div>
-          </div>
-        </CardContent>
-        {avatarPreview && (
-          <CardFooter className="pb-4 pt-2 border-t border-slate-100 bg-slate-50/50 flex justify-end">
-            <Button
-              type="button"
-              onClick={handleSaveAvatar}
-              disabled={avatarPending}
-              className="font-semibold text-xs py-1.5 px-4 shadow-sm cursor-pointer gap-1.5"
-            >
-              {avatarPending ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Saving Avatar...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-3.5 w-3.5" />
-                  Save Profile Photo
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        )}
-      </Card>
 
       {/* 1. Account Settings Card (Available to All Roles) */}
       <Card className="border-slate-200/80 shadow-sm">

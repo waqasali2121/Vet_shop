@@ -20,7 +20,6 @@ interface HeaderProps {
   onToggleSidebar: () => void
   userEmail?: string
   userRole?: string
-  userAvatar?: string | null
   registerSession?: { id: string; openedAt: string } | null
 }
 
@@ -28,7 +27,6 @@ export function Header({
   onToggleSidebar,
   userEmail = "staff@salmanfarsy.com",
   userRole = "CASHIER",
-  userAvatar = null,
   registerSession = null,
 }: HeaderProps) {
   const [isPending, startTransition] = useTransition()
@@ -81,17 +79,11 @@ export function Header({
             <Button
               variant="outline"
               size="sm"
-              className="flex items-center gap-2 border-slate-200 hover:bg-slate-50 cursor-pointer p-1.5 sm:px-3"
+              className="flex items-center gap-2 border-slate-200 hover:bg-slate-50 cursor-pointer"
             >
-              {userAvatar ? (
-                <div className="relative h-6 w-6 overflow-hidden rounded-full border border-slate-200">
-                  <Image src={userAvatar} alt="Profile" fill className="object-cover" />
-                </div>
-              ) : (
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <User className="h-3.5 w-3.5" />
-                </div>
-              )}
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <User className="h-3.5 w-3.5" />
+              </div>
               <span className="hidden sm:inline-block text-xs font-semibold text-slate-700">
                 {userEmail.split("@")[0]}
               </span>
